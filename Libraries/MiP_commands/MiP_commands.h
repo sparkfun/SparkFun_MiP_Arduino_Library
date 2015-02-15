@@ -14,25 +14,69 @@ class MiP {
 public:
 	MiP();
 	~MiP();
+
 	void reset(void);
-	void playSingleSound(Sounds sound, unsigned char delay, unsigned char loop_count);
+
+	void playSingleSound(Sounds sound, uint8_t delay);
 	//void playMultipleSounds();
-	void setMiPPosition(unsigned char position);
+
+	void setMiPPosition(uint8_t position);
 	//TODO void distanceDrive();
-	void timeDrive(char direction, char speed, unsigned char time);
-	void turnAngle(char direction, char speed, unsigned char angle);
-	void continuousDrive(char direction, char speed);
-	void setGameMode(char mode);
+	void timeDrive(int8_t direction, int8_t speed, uint8_t time);
+	void turnAngle(int8_t direction, int8_t speed, uint8_t angle);
+	void continuousDrive(int8_t direction, int8_t speed);
 	void stop(void);
 
-	void getStatus(void); //TODO create struct for status
+	void setGameMode(int8_t mode);
 
-	void standUp(char state);
-	unsigned char getWeightStatus(void);
-	void requestChestLED(void); //TODO create struct for chest LEDS
-	void setChestLED(unsigned char red, unsigned char green, unsigned char blue);
-	void flashChestLED(unsigned char red, unsigned char green, unsigned char blue, unsigned char time_on, unsigned char time_off);
+	void getStatus(Parameter parameter); //TODO create struct for status
+
+	void standUp(int8_t state);
+	//uint8_t getWeightStatus(void);
+
+	void requestChestLED(void); //TODO create struct for chest LEDs
+	void setChestLED(uint8_t red, uint8_t green, uint8_t blue);
+	void flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off);
+	void setHeadLEDs(void);
+	void getHeadLEDs(void); //TODO create struct for head LEDs
+
+	uint32_t getOdometer(void);
+	void resetOdometer(void);
+
+	//void setGestureDetectMode(int8_t mode);
+	//int8_t getGestureDetectMode(void);
+	int8_t getGestureDetect(void);
+	int8_t getRadarDetect(void);
+
+	//void setDetectionMode(int8_t mode, int8_t power);
+	//void getDetectionMode(void); //TODO create structure for detection mode
+
+	int8_t getShakeDetection(void);
+
+	void setIRcontrol(int8_t mode);
+	int8_t getIRcontrol(void);
+
+	int8_t ping(void);
+
+	void setEEPROMData(int8_t addr, uint8_t data);
+	uint8_t getEEPROMData(int8_t addr);
+
+	//void getSoftwareVersion(int8_t* version);
+	//void getHardwareVersion(int8_t* version);
+
+	//void setVolume(int8_t volume);
+	//int8_t getVolume();
+
+	void setClapDetection(int8_t mode);
+	int8_t getClapDetection(void);
+	void getClapsRecieved(int8_t* claps);
+
+private:
+	int8_t sendMessage(uint8_t* message);
 
 };
+
+
+
 
 #endif /* MIP_COMMANDS_H_ */
