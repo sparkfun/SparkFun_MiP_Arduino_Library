@@ -9,9 +9,8 @@
 #define MIP_SOUNDS_H_
 
 enum Sounds{
-	FIRST_SOUND = 1,
-
-
+  TEST_SOUND = 1,
+  BURP
 
 };
 
