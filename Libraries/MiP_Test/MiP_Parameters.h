@@ -8,6 +8,10 @@
 #ifndef MIP_PARAMETERS_H_
 #define MIP_PARAMETERS_H_
 
+enum SetPosition{
+  FACEUP = 0,
+  FACEDOWN
+};
 
 enum Parameters{
 		BATTERY_LEVEL,
@@ -46,7 +50,7 @@ enum Game{
 	PLAY_BACK,
 	TRACKING,
 	DANCE,
-	DEFAULT,
+	//DEFAULT,
 	STACK,
 	TRICKS,
 	ROAM
