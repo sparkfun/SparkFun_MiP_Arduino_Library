@@ -101,12 +101,12 @@ void MiP::turnAngle(int8_t direction, int8_t speed, uint8_t angle){
   if(speed >= 24)speed = 24; //cap speed at max of 24
   data_array[1] = uint8_t(speed);
 
-  if(angle >= 360){
-    angle = 360; //cap rotation at 360 deg
+  if(angle > 0 && angle <= 360){
     angle = (angle - 0) / (360 - 0) * 72; //map 360 degrees to 5 degree increments
     data_array[2] = uint8_t(angle);
   }
   else{
+    angle = 0;
     data_array[2] = uint8_t(angle);
   }
 
