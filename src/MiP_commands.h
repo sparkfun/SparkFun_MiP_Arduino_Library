@@ -27,8 +27,9 @@ class MiP {
     void turnAngle(int8_t direction, int8_t speed, uint8_t angle);
 /*
     void continuousDrive(int8_t direction, int8_t speed);
+*/
     void stop(void);
-
+/*
     void setGameMode(int8_t mode);
 
     void getStatus(Parameter parameter); //TODO create struct for status

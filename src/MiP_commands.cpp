@@ -112,10 +112,15 @@ void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
 void MiP::continuousDrive(int8_t direction, int8_t speed){
 
 }
+*/
 void MiP::stop(void){
-
+  uint8_t array_length = 1;
+  uint8_t data_array[array_length];
+  data_array[0] = 0x77;
+    
+  sendMessage(data_array, array_length);
 }
-
+/*
 void MiP::setGameMode(Game mode){
 	uint8_t data_array[2];
 	data_array[0] = 0x76;
