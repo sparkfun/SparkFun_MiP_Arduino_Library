@@ -15,7 +15,7 @@ class MiP {
   public:
     MiP(int8_t UART_Select);
     ~MiP();
-    
+
     void init(void);
 
     void playSingleSound(Sounds MiPSound);
@@ -23,8 +23,9 @@ class MiP {
     void distanceDrive(int16_t distance, int16_t angle);
 
 
-/*    void timeDrive(int8_t direction, int8_t speed, uint8_t time);
+//    void timeDrive(int8_t direction, int8_t speed, uint8_t time);
     void turnAngle(int8_t direction, int8_t speed, uint8_t angle);
+/*
     void continuousDrive(int8_t direction, int8_t speed);
     void stop(void);
 
