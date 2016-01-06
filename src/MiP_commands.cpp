@@ -84,7 +84,7 @@ void MiP::timeDrive(int8_t direction, int8_t speed, uint8_t time){
 }
 */
 
-void MiP::turnAngle(int8_t direction, int8_t speed, uint8_t angle){
+void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
   uint8_t array_length = 4;
   uint8_t data_array[array_length];
 
@@ -98,17 +98,11 @@ void MiP::turnAngle(int8_t direction, int8_t speed, uint8_t angle){
     data_array[0] = 0x73; //Default to Left Turn
   };
 
-  if(speed >= 24)speed = 24; //cap speed at max of 24
-  data_array[1] = uint8_t(speed);
+  if(angle >= 255)angle = 255; //cap angle at max of 255
+  data_array[1] = uint8_t(angle); //Angle in intervals of 5 degrees
 
-  if(angle > 0 && angle <= 360){
-    angle = (angle - 0) / (360 - 0) * 72; //map 360 degrees to 5 degree increments
-    data_array[2] = uint8_t(angle);
-  }
-  else{
-    angle = 0;
-    data_array[2] = uint8_t(angle);
-  }
+  if(speed >= 24)speed = 24; //cap speed at max of 24
+  data_array[2] = uint8_t(speed);
 
   sendMessage(data_array, array_length);
 
