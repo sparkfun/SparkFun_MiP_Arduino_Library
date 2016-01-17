@@ -15,7 +15,7 @@ class MiP {
   public:
     MiP(int8_t UART_Select);
     ~MiP();
-    
+
     void init(void);
 
     void playSingleSound(Sounds MiPSound);
@@ -23,11 +23,13 @@ class MiP {
     void distanceDrive(int16_t distance, int16_t angle);
 
 
-/*    void timeDrive(int8_t direction, int8_t speed, uint8_t time);
+//    void timeDrive(int8_t direction, int8_t speed, uint8_t time);
     void turnAngle(int8_t direction, int8_t speed, uint8_t angle);
+/*
     void continuousDrive(int8_t direction, int8_t speed);
+*/
     void stop(void);
-
+/*
     void setGameMode(int8_t mode);
 
     void getStatus(Parameter parameter); //TODO create struct for status
@@ -65,10 +67,10 @@ class MiP {
 
     //void getSoftwareVersion(int8_t* version);
     //void getHardwareVersion(int8_t* version);
-    
-    //void setVolume(int8_t volume);
+*/
+    void setVolume(int8_t volume);
     //int8_t getVolume();
-
+/*
     void setClapDetection(int8_t mode);
     int8_t getClapDetection(void);
     void getClapsRecieved(int8_t* claps);
