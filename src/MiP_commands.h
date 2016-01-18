@@ -41,7 +41,9 @@ class MiP {
     void setChestLED(uint8_t red, uint8_t green, uint8_t blue);
     /*
     void flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off);
-    void setHeadLEDs(void);
+	*/
+    void setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4);
+	/*
     void getHeadLEDs(void); //TODO create struct for head LEDs
 
     uint32_t getOdometer(void);

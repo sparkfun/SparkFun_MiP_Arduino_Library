@@ -147,7 +147,7 @@ void MiP::requestChestLED(void){
 } //TODO create struct for chest LEDs
 */
 void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
-  uint8_t array_length = 5;
+  uint8_t array_length = 4;
   uint8_t data_array[array_length];
   data_array[0] = 0x84;
   data_array[1] = red;
@@ -161,9 +161,19 @@ void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
 void MiP::flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off){
 
 }
-void MiP::setHeadLEDs(void){
+*/
+void MiP::setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4){
+  uint8_t array_length = 6;
+  uint8_t data_array[array_length];
+  data_array[0] = 0x8A;
+  data_array[1] = light1;
+  data_array[2] = light2;
+  data_array[3] = light3;
+  data_array[4] = light4;  
 
+  sendMessage(data_array, array_length);
 }
+/*
 void MiP::getHeadLEDs(void){
 
 } //TODO create struct for head LEDs
