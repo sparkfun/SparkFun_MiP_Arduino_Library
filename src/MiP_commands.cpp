@@ -9,9 +9,11 @@
 #include "MiP_Parameters.h"
 #include <avr/io.h>
 
-MiP::MiP(int8_t UART_Select) {
-  _UART_Select = UART_Select; //bring variable into a private variable.
-  pinMode(_UART_Select, OUTPUT);
+MiP::MiP(int8_t UART_Select_S, int8_t UART_Select_R) {
+  _UART_Select_S = UART_Select_S; //bring variable into a private variable.
+  _UART_Select_R = UART_Select_R; //bring variable into a private variable.
+  pinMode(_UART_Select_S, OUTPUT);
+  pinMode(_UART_Select_R, INPUT);
 }
 
 MiP::~MiP() {
@@ -20,7 +22,6 @@ MiP::~MiP() {
 
 void MiP::init(void){
   Serial.begin(115200);
-  delay(1000);
   uint8_t array_length = 9;
   uint8_t data_array[] = "TTM:OK\r\n";
   sendMessage(data_array, array_length);
@@ -132,20 +133,43 @@ void MiP::setGameMode(Game mode){
 void MiP::getStatus(void){
 
 } //TODO create struct for status
-
+*/
 void MiP::standUp(int8_t state){
+  uint8_t array_length = 2;
+  uint8_t data_array[array_length];
+  data_array[0] = 0x23;
+  data_array[1] = state;
 
+  sendMessage(data_array, array_length);
 }
+/*
 uint8_t MiP::getWeightStatus(void){
 	uint8_t weight;
 
 	return PLAY_BACK;
 }
-
-void MiP::requestChestLED(void){
-
-} //TODO create struct for chest LEDs
 */
+void MiP::requestChestLED(void){
+  uint8_t array_length = 4;
+  uint8_t data_array[array_length];
+  
+  data_array[0] = 0x83;
+  data_array[1] = 0x00;
+  data_array[2] = 0x00;
+  data_array[3] = 0x00;
+  //return new _LEDColor();
+/*
+  uint8_t returned_array[array_length];
+  returned_array[array_length] = sendMessage(data_array, array_length);
+  if(returned_array[1] == 255)
+	  return RED;
+  if(returned_array[1] == 255)
+	  return GREEN;
+  if(returned_array[3] == 255)
+	  return BLUE; 
+  */
+}
+
 void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
   uint8_t array_length = 4;
   uint8_t data_array[array_length];
@@ -251,13 +275,33 @@ void MiP::setVolume(int8_t volume){
 
   sendMessage(data_array, array_length);
 }
-/*
+
 int8_t MiP::getVolume(){
-	int8_t volume;
+  int answerVal = -1;
+  uint8_t answer[4];
+  uint8_t question[] = {GET_VOLUME};
+  int iteration = 0;
+  while ((0 > answerVal || answerVal > 7) && iteration < MAX_RETRIES) {
+    sendMessage(question, 1);
+    if (Serial.available() == 4) {
+      getMessage(answer, 4);
+      if (answer[0] - 48 == 1 && answer[1] - 48 == 6 && answer[2] - 48 == 0)
+        answerVal = answer[3] - 48;
+    }
+    else
+    {
+      while (Serial.available())
+        Serial.read();
+    }
+    iteration++;
+  }
+  // One more value check in case last try produced invalid result.
+  if (0 > answerVal || answerVal > 7)
+    return -1;
 
-	return volume;
+  return answerVal;
 }
-
+/*
 void MiP::setClapDetection(int8_t mode){
 
 }
@@ -269,11 +313,13 @@ void MiP::getClapsRecieved(int8_t* claps){
 }
 */
 
+
+
+
 // Private Functions
 
-
-int8_t MiP::sendMessage(unsigned char *message, uint8_t array_length){
-  digitalWrite(_UART_Select, HIGH);
+void MiP::sendMessage(unsigned char *message, uint8_t array_length){
+  digitalWrite(_UART_Select_S, HIGH);
   delay(5);
   uint8_t i = 0;
   for(i; i < array_length; i++){
@@ -281,6 +327,15 @@ int8_t MiP::sendMessage(unsigned char *message, uint8_t array_length){
   }
   Serial.write(0x00);
   delay(5);
-  digitalWrite(_UART_Select, LOW);
-  return 0;
+  digitalWrite(_UART_Select_S, LOW);
 }
+
+void MiP::getMessage(unsigned char *answer, int byteCount) {
+  digitalWrite(_UART_Select_R, HIGH);
+  for (int i = 0; i < byteCount; i++) {
+    answer[i] = Serial.read();
+    //Serial.println(answer[i]);
+  }
+  digitalWrite(_UART_Select_R, LOW);
+}
+
