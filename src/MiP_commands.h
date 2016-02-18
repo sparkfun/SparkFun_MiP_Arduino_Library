@@ -11,10 +11,17 @@
 #include "MiP_sounds.h"
 #include "MiP_Parameters.h"
 #include <Arduino.h>
+struct _LEDColor;
 class MiP {
   public:
-    MiP(int8_t UART_Select);
-    ~MiP();
+    MiP(int8_t UART_Select_S, int8_t UART_Select_R);
+    ~MiP();  
+	typedef struct _LEDColor
+	{
+		int red;
+		int green;
+		int blue;
+	} LEDColor;
 
     void init(void);
 
@@ -33,15 +40,19 @@ class MiP {
     void setGameMode(int8_t mode);
 
     void getStatus(Parameter parameter); //TODO create struct for status
-
+*/
     void standUp(int8_t state);
+	/*
     //uint8_t getWeightStatus(void);
+	*/
     void requestChestLED(void); //TODO create struct for chest LEDs
-    */
+    
     void setChestLED(uint8_t red, uint8_t green, uint8_t blue);
     /*
     void flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off);
-    void setHeadLEDs(void);
+	*/
+    void setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4);
+	/*
     void getHeadLEDs(void); //TODO create struct for head LEDs
 
     uint32_t getOdometer(void);
@@ -67,20 +78,24 @@ class MiP {
 
     //void getSoftwareVersion(int8_t* version);
     //void getHardwareVersion(int8_t* version);
-    
-    //void setVolume(int8_t volume);
-    //int8_t getVolume();
-
+*/
+    void setVolume(int8_t volume);
+	
+    int8_t getVolume();
+/*
     void setClapDetection(int8_t mode);
     int8_t getClapDetection(void);
     void getClapsRecieved(int8_t* claps);
 */
+
   private:
-    int8_t _UART_Select; //Variable to store UART Select pin Default is D2
-    int8_t sendMessage(unsigned char *message, uint8_t array_length);
-
+    int8_t _UART_Select_S; //Variable to store UART Select pin. Default is D2
+	int8_t _UART_Select_R; //Variable to store UART Select pin. Default is D2
+    void sendMessage(unsigned char *message, uint8_t array_length);
+	void getMessage(unsigned char *answer, int byteCount);
+	uint8_t answer[8]; //Variable to store returned data from MiP
+	void getData();
 };
-
 
 
 

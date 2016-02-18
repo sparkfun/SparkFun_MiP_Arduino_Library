@@ -69,6 +69,17 @@ enum LEDState{
 	BLINK_FAST
 };
 
+enum LEDColor{
+	RED,
+	GREEN,
+	BLUE
+};
 
+enum Commands{
+	GET_VOLUME = 0x16
+};
 
+enum Comms{
+	MAX_RETRIES = 10
+};
 #endif /* MIP_PARAMETERS_H_ */
