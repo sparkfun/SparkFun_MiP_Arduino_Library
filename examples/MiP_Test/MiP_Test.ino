@@ -1,6 +1,12 @@
+/*MiP Test example
+Written by Casey Kuhns
+SparkFun Electronics
+
+2015
+*/
 #include "MiP_commands.h"
 
-MiP MyMiP(2);
+MiP MyMiP(2,3);
   
 void setup(){
 

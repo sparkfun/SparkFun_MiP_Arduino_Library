@@ -1,9 +1,14 @@
+/*MiP Turn Angle example
+Written by 2stacks
+2016
+*/
+
 #include <MiP_commands.h>
 #include <MiP_Parameters.h>
 #include <MiP_sounds.h>
 
 
-MiP MyMiP(2);
+MiP MyMiP(2,3);
   
 void setup(){
 
