@@ -38,7 +38,8 @@ enum Parameters{
 
 		IR_CONTROL,
 
-		VOLUME,
+		MIN_VOLUME = 0,
+		MAX_VOLUME = 7,
 
 		VERSION_VOICECHIP,
 		VERSION_HARDWARE,
@@ -76,10 +77,11 @@ enum LEDColor{
 };
 
 enum Commands{
+	SET_VOLUME = 0x15,
 	GET_VOLUME = 0x16
 };
 
 enum Comms{
-	MAX_RETRIES = 10
+	MAX_RETRIES = 15
 };
 #endif /* MIP_PARAMETERS_H_ */

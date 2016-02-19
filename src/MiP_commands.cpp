@@ -270,7 +270,7 @@ void MiP::getHardwareVersion(int8_t* version){
 void MiP::setVolume(int8_t volume){
   uint8_t array_length = 2;
   uint8_t data_array[array_length];
-  data_array[0] = 0x15;
+  data_array[0] = SET_VOLUME;
   data_array[1] = volume;
 
   sendMessage(data_array, array_length);
@@ -278,15 +278,16 @@ void MiP::setVolume(int8_t volume){
 
 int8_t MiP::getVolume(){
   int answerVal = -1;
-  uint8_t answer[4];
+  uint8_t answer[2];
   uint8_t question[] = {GET_VOLUME};
   int iteration = 0;
-  while ((0 > answerVal || answerVal > 7) && iteration < MAX_RETRIES) {
+  while ((MIN_VOLUME > answerVal || answerVal > MAX_VOLUME) && iteration < MAX_RETRIES) {
     sendMessage(question, 1);
     if (Serial.available() == 4) {
-      getMessage(answer, 4);
-      if (answer[0] - 48 == 1 && answer[1] - 48 == 6 && answer[2] - 48 == 0)
-        answerVal = answer[3] - 48;
+      getMessage(answer, 2);
+      if (answer[0] == GET_VOLUME) {
+		  answerVal = answer[1];
+	  }    
     }
     else
     {
@@ -331,10 +332,44 @@ void MiP::sendMessage(unsigned char *message, uint8_t array_length){
 }
 
 void MiP::getMessage(unsigned char *answer, int byteCount) {
+  boolean validChar = true;
+  uint8_t recvHigh;
+  uint8_t recvLow;
+  int i = 0;
   digitalWrite(_UART_Select_R, HIGH);
-  for (int i = 0; i < byteCount; i++) {
-    answer[i] = Serial.read();
-    //Serial.println(answer[i]);
+  // Exit loop if at any time an invalid ASCII character is detected.
+  while(i < byteCount && validChar) {
+    recvHigh = Serial.read();
+	// A valid ASCII character will have MSB=0011b (0x30)
+	if((recvHigh & 0xF0) != 0x30){
+		validChar = false;
+	}
+	else {
+		// Do some masking to get rid of the ASCII encoding.
+		recvHigh = recvHigh & 0x0F;
+		// Shift some bits to prepare for concatenation of bytes.
+		recvHigh = recvHigh << 4;
+		recvLow = Serial.read();
+		// Again, check for an invalid character.
+		if((recvLow & 0xF0) != 0x30){
+		  validChar = false;
+        }
+		else {
+			// Do some masking to get rid of the ASCII encoding.
+			recvLow  = recvLow & 0x0F;
+			// Put the two together (concatenation).
+			recvHigh = recvHigh + recvLow;
+			answer[i] = recvHigh;		
+		}
+	}
+	i++;
   }
   digitalWrite(_UART_Select_R, LOW);
+  // If there was an invalid char during this getMessage, let caller know with -1.
+  if(!validChar){
+    for(int j = 0; j < byteCount; j++){
+      answer[j] = -1;
+    }
+  }
 }
+
