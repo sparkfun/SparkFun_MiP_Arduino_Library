@@ -25,6 +25,8 @@ void MiP::init(void){
   uint8_t array_length = 9;
   uint8_t data_array[] = "TTM:OK\r\n";
   sendMessage(data_array, array_length);
+  // Personal choice but I don't care for start-up noises.  Always start MiP with volume off.
+  setVolume(0);
 }
 
 void MiP::playSingleSound(Sounds MiPSound){
@@ -109,6 +111,13 @@ void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
 
 }
 
+void MiP::setSleep(){
+  uint8_t array_length = 1;
+  uint8_t data_array[array_length];
+  data_array[0] = SLEEP;
+
+  sendMessage(data_array, array_length);
+}
 /*
 void MiP::continuousDrive(int8_t direction, int8_t speed){
 
@@ -117,7 +126,7 @@ void MiP::continuousDrive(int8_t direction, int8_t speed){
 void MiP::stop(void){
   uint8_t array_length = 1;
   uint8_t data_array[array_length];
-  data_array[0] = 0x77;
+  data_array[0] = STOP;
     
   sendMessage(data_array, array_length);
 }
@@ -173,7 +182,7 @@ void MiP::requestChestLED(void){
 void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
   uint8_t array_length = 4;
   uint8_t data_array[array_length];
-  data_array[0] = 0x84;
+  data_array[0] = SET_CHEST_LED;
   data_array[1] = red;
   data_array[2] = green;
   data_array[3] = blue;
@@ -207,10 +216,15 @@ uint32_t MiP::getOdometer(void){
 
 	return odometer;
 }
+*/
 void MiP::resetOdometer(void){
+  uint8_t array_length = 1;
+  uint8_t data_array[array_length];
+  data_array[0] = RESET_ODOMETER;
 
+  sendMessage(data_array, array_length);
 }
-
+/*
 void MiP::setGestureDetectMode(int8_t mode){
 
 }
@@ -244,8 +258,32 @@ int8_t MiP::getShakeDetection(void){
 }
 
 void MiP::setIRcontrol(int8_t mode){}
-int8_t MiP::getIRcontrol(void){}
-
+*/
+boolean MiP::getIRcontrol(void){
+  int answerVal = -1;
+  uint8_t answer[2];
+  uint8_t question[] = {GET_IR_CONTROL_STATUS};
+  int iteration = 0;
+  while ((answerVal != 0x00 || answerVal != 0x01) && iteration < MAX_RETRIES) {
+    sendMessage(question, 1);
+    if (Serial.available() == 4) {
+      getMessage(answer, 2);
+      if (answer[0] == GET_IR_CONTROL_STATUS && answer[1] == 0x00) {
+		  return false;
+	  }
+	  else{
+		  return true;
+	  }
+    }
+    else
+    {
+      while (Serial.available())
+        Serial.read();
+    }
+    iteration++;
+  }
+}
+/*
 int8_t MiP::ping(void){
 	int8_t ping;
 

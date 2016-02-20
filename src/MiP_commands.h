@@ -56,8 +56,9 @@ class MiP {
     void getHeadLEDs(void); //TODO create struct for head LEDs
 
     uint32_t getOdometer(void);
+	*/
     void resetOdometer(void);
-
+/*
     //void setGestureDetectMode(int8_t mode);
     //int8_t getGestureDetectMode(void);
     int8_t getGestureDetect(void);
@@ -69,8 +70,9 @@ class MiP {
     int8_t getShakeDetection(void);
 
     void setIRcontrol(int8_t mode);
-    int8_t getIRcontrol(void);
-
+	*/
+    boolean getIRcontrol(void);
+/*
     int8_t ping(void);
 
     void setEEPROMData(int8_t addr, uint8_t data);
@@ -80,7 +82,7 @@ class MiP {
     //void getHardwareVersion(int8_t* version);
 */
     void setVolume(int8_t volume);
-	
+	void setSleep();
     int8_t getVolume();
 /*
     void setClapDetection(int8_t mode);

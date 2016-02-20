@@ -77,8 +77,13 @@ enum LEDColor{
 };
 
 enum Commands{
+	GET_IR_CONTROL_STATUS = 0x11,
 	SET_VOLUME = 0x15,
-	GET_VOLUME = 0x16
+	GET_VOLUME = 0x16,
+	STOP = 0x77,
+	SET_CHEST_LED = 0x84,
+	RESET_ODOMETER = 0x86,
+	SLEEP = 0xFA
 };
 
 enum Comms{
