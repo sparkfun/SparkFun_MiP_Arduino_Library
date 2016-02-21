@@ -13,16 +13,22 @@ MiP::MiP(int8_t UART_Select_S, int8_t UART_Select_R) {
 	_UART_Select_R = UART_Select_R; //bring variable into a private variable.
 	pinMode(_UART_Select_S, OUTPUT);
 	pinMode(_UART_Select_R, INPUT);
-}MiP::~MiP() {
+}
+
+MiP::~MiP() {
 	// TODO Auto-generated destructor stub
-}void MiP::init(void){
+}
+
+void MiP::init(void){
 	Serial.begin(115200);
 	uint8_t array_length = 9;
 	uint8_t data_array[] = "TTM:OK\r\n";
 	sendMessage(data_array, array_length);
 	// Personal choice but I don't care for start-up noises.  Always start MiP with volume off.
 	setVolume(0);
-}void MiP::playSingleSound(Sounds MiPSound){
+}
+
+void MiP::playSingleSound(Sounds MiPSound){
 	uint8_t array_length = 5;
 	uint8_t data_array[array_length];
 	data_array[0] = 0x06; //Play sound command from WowWee documentation
@@ -41,7 +47,9 @@ void MiP::setPosition(SetPosition pose){
 	data_array[1] = pose;
 
 	sendMessage(data_array, array_length);
-}void MiP::distanceDrive(int16_t distance, int16_t angle){
+}
+
+void MiP::distanceDrive(int16_t distance, int16_t angle){
 	uint8_t array_length = 7;
 	uint8_t data_array[array_length];
 	data_array[0] = 0x70; //Drive Distance Command
@@ -83,13 +91,13 @@ void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
 	uint8_t data_array[array_length];
 
 	if(direction == 0){
-		data_array[0] = 0x73; //Turn Left by Angle Command
+		data_array[0] = TURN_LEFT_BY_ANGLE;
 	}
 	else if(direction == 1){
-		data_array[0] = 0x74; //Turn Right by Angle Command
+		data_array[0] = TURN_RIGHT_BY_ANGLE;
 	}
 	else{
-		data_array[0] = 0x73; //Default to Left Turn
+		data_array[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
 	};
 
 	if(angle >= 255)angle = 255; //cap angle at max of 255
@@ -99,7 +107,6 @@ void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
 	data_array[2] = uint8_t(speed);
 
 	sendMessage(data_array, array_length);
-
 }
 
 void MiP::setSleep(){
@@ -117,7 +124,7 @@ void MiP::stop(void){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
 	data_array[0] = STOP;
-		sendMessage(data_array, array_length);
+	sendMessage(data_array, array_length);
 }void MiP::setGameMode(Game mode){
 	uint8_t data_array[2];
 	data_array[0] = SET_GAME_MODE;
@@ -285,7 +292,9 @@ void MiP::setVolume(int8_t volume){
 	data_array[1] = volume;
 
 	sendMessage(data_array, array_length);
-}int8_t MiP::getVolume(){
+}
+
+int8_t MiP::getVolume(){
 	int answerVal = -1;
 	uint8_t answer[2];
 	uint8_t question[] = {GET_VOLUME};
@@ -310,13 +319,50 @@ void MiP::setVolume(int8_t volume){
 	return -1;
 
 	return answerVal;
-}/*
-void MiP::setClapDetection(int8_t mode){
-
 }
-int8_t MiP::getClapDetection(void){
 
+void MiP::setClapDetection(int8_t noOfClaps){
+	uint8_t array_length = 2;
+	uint8_t data_array[array_length];
+	data_array[0] = SET_CLAP_DETECTION;
+	data_array[1] = noOfClaps;
+
+	sendMessage(data_array, array_length);
 }
+
+boolean MiP::isClapDetectionEnabled(void){
+	int answerVal = -1;
+	uint8_t answer[2];
+	uint8_t question[] = {GET_CLAP_DETECTION};
+	int iteration = 0;
+	while ((answerVal != 0x00 || answerVal != 0x01) && iteration < MAX_RETRIES) {
+		sendMessage(question, 1);
+		if (Serial.available() == 4) {
+			getMessage(answer, 2);
+			if (answer[0] == GET_CLAP_DETECTION) {
+				answerVal = answer[1];
+			}
+		}
+		else
+		{
+			while (Serial.available())
+			Serial.read();
+		}
+		iteration++;
+	}
+	// One more value check in case last try produced invalid result.
+	if (answerVal != 0x00 || answerVal != 0x01){
+		return -1;		
+	}
+
+	if(answerVal == 0x00){
+		return false;
+	} 
+	else {
+		return true;
+	}
+}
+/*
 void MiP::getClapsRecieved(int8_t* claps){
 
 }
@@ -325,8 +371,10 @@ void MiP::disconnectApp(){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
 	data_array[0] = SET_DISCONNECT_APP;
-		sendMessage(data_array, array_length);
-}// Private Functions
+	sendMessage(data_array, array_length);
+}
+
+// Private Functions
 
 void MiP::sendMessage(unsigned char *message, uint8_t array_length){
 	digitalWrite(_UART_Select_S, HIGH);
@@ -338,7 +386,9 @@ void MiP::sendMessage(unsigned char *message, uint8_t array_length){
 	Serial.write(0x00);
 	delay(5);
 	digitalWrite(_UART_Select_S, LOW);
-}void MiP::getMessage(unsigned char *answer, int byteCount) {
+}
+
+void MiP::getMessage(unsigned char *answer, int byteCount) {
 	boolean validChar = true;
 	uint8_t recvHigh;
 	uint8_t recvLow;

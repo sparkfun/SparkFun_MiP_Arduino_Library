@@ -81,11 +81,11 @@ public:
 	void setVolume(int8_t volume);
 	void setSleep();
 	int8_t getVolume();
-	/*
-	void setClapDetection(int8_t mode);
-	int8_t getClapDetection(void);
-	void getClapsRecieved(int8_t* claps);
-*/
+
+	void setClapDetection(int8_t noOfClaps);
+	int8_t isClapDetectionEnabled(void);
+//	void getClapsRecieved(int8_t* claps);
+
 	void disconnectApp();
 	private:
 	int8_t _UART_Select_S; //Variable to store UART Select pin. Default is D2
