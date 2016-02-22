@@ -7,9 +7,9 @@
 #ifndef MIP_PARAMETERS_H_
 #define MIP_PARAMETERS_H_
 
-enum SetPosition{
-	FACEUP = 0,
-	FACEDOWN
+enum Position{
+	FACE_UP = 0x00,
+	FACE_DOWN = 0x01
 };
 
 enum Parameters{
@@ -56,9 +56,9 @@ enum Game{
 };
 
 enum GetUp{
-	FRONT,
-	BACK,
-	BOTH
+	FRONT = 0x00,
+	BACK = 0x01,
+	BOTH = 0x02
 };
 
 enum LEDState{
@@ -75,11 +75,15 @@ enum LEDColor{
 };
 
 enum Commands{
+	PLAY_SOUND = 0x06,
+	SET_POSITION = 0x08,
 	GET_IR_CONTROL_STATUS = 0x11,
 	SET_VOLUME = 0x15,
 	GET_VOLUME = 0x16,
 	SET_CLAP_DETECTION = 0x1D,
 	GET_CLAP_DETECTION = 0x1E,
+	GET_UP = 0x23,
+	DRIVE_DISTANCE = 0x70,
 	TURN_LEFT_BY_ANGLE = 0x73,
 	TURN_RIGHT_BY_ANGLE = 0x74,
 	SET_GAME_MODE = 0x76,

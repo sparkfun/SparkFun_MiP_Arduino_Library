@@ -31,7 +31,7 @@ void MiP::init(void){
 void MiP::playSingleSound(Sounds MiPSound){
 	uint8_t array_length = 5;
 	uint8_t data_array[array_length];
-	data_array[0] = 0x06; //Play sound command from WowWee documentation
+	data_array[0] = PLAY_SOUND; //Play sound command from WowWee documentation
 	data_array[1] = MiPSound; //User selected sound
 	data_array[2] = 0;
 	data_array[3] = 0;
@@ -40,10 +40,10 @@ void MiP::playSingleSound(Sounds MiPSound){
 
 }
 
-void MiP::setPosition(SetPosition pose){
-	uint8_t array_length = 3;
+void MiP::setPosition(Position pose){
+	uint8_t array_length = 2;
 	uint8_t data_array[array_length];
-	data_array[0] = 0x08;
+	data_array[0] = SET_POSITION;
 	data_array[1] = pose;
 
 	sendMessage(data_array, array_length);
@@ -52,7 +52,7 @@ void MiP::setPosition(SetPosition pose){
 void MiP::distanceDrive(int16_t distance, int16_t angle){
 	uint8_t array_length = 7;
 	uint8_t data_array[array_length];
-	data_array[0] = 0x70; //Drive Distance Command
+	data_array[0] = DRIVE_DISTANCE; //Drive Distance Command
 
 	if(distance >=0){
 		data_array[1] = 0x00; // Forward
@@ -136,10 +136,10 @@ void MiP::getStatus(void){
 
 } //TODO create struct for status
 */
-void MiP::standUp(int8_t state){
+void MiP::getUp(GetUp state){
 	uint8_t array_length = 2;
 	uint8_t data_array[array_length];
-	data_array[0] = 0x23;
+	data_array[0] = GET_UP;
 	data_array[1] = state;
 
 	sendMessage(data_array, array_length);

@@ -15,17 +15,11 @@ class MiP {
 public:
 	MiP(int8_t UART_Select_S, int8_t UART_Select_R);
 	~MiP();
-	typedef struct _LEDColor
-	{
-		int red;
-		int green;
-		int blue;
-	} LEDColor;
 
 	void init(void);
 
 	void playSingleSound(Sounds MiPSound);
-	void setPosition(SetPosition pose);
+	void setPosition(Position pose);
 	void distanceDrive(int16_t distance, int16_t angle);
 
 	//    void timeDrive(int8_t direction, int8_t speed, uint8_t time);
@@ -39,7 +33,7 @@ public:
 	/*
 	void getStatus(Parameter parameter); //TODO create struct for status
 */
-	void standUp(int8_t state);
+	void getUp(GetUp state);
 	/*
 	//uint8_t getWeightStatus(void);
 	*/
@@ -83,7 +77,7 @@ public:
 	int8_t getVolume();
 
 	void setClapDetection(int8_t noOfClaps);
-	int8_t isClapDetectionEnabled(void);
+	boolean isClapDetectionEnabled();
 //	void getClapsRecieved(int8_t* claps);
 
 	void disconnectApp();
