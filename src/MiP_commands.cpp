@@ -16,28 +16,25 @@ MiP::MiP(int8_t UART_Select_S, int8_t UART_Select_R) {
 }
 
 MiP::~MiP() {
-	// TODO Auto-generated destructor stub
 }
 
 void MiP::init(void){
-	Serial.begin(115200);
+	Serial.begin(BAUD_RATE);
 	uint8_t array_length = 9;
 	uint8_t data_array[] = "TTM:OK\r\n";
 	sendMessage(data_array, array_length);
-	// Personal choice but I don't care for start-up noises.  Always start MiP with volume off.
 	setVolume(0);
 }
 
-void MiP::playSingleSound(Sounds MiPSound){
-	uint8_t array_length = 5;
+void MiP::playSound(Sounds MiPSound, uint8_t delayInterval, uint8_t repeatTimes){
+	uint8_t array_length = 4;
 	uint8_t data_array[array_length];
 	data_array[0] = PLAY_SOUND; //Play sound command from WowWee documentation
 	data_array[1] = MiPSound; //User selected sound
-	data_array[2] = 0;
-	data_array[3] = 0;
+	data_array[2] = delayInterval;
+	data_array[3] = repeatTimes;
 
 	sendMessage(data_array, array_length);
-
 }
 
 void MiP::setPosition(Position pose){
@@ -49,7 +46,7 @@ void MiP::setPosition(Position pose){
 	sendMessage(data_array, array_length);
 }
 
-void MiP::distanceDrive(int16_t distance, int16_t angle){
+void MiP::driveForward(int16_t distance, int16_t angle){
 	uint8_t array_length = 7;
 	uint8_t data_array[array_length];
 	data_array[0] = DRIVE_DISTANCE; //Drive Distance Command
@@ -77,16 +74,13 @@ void MiP::distanceDrive(int16_t distance, int16_t angle){
 
 	sendMessage(data_array, array_length);
 
-};
+}
 
-/*
-//TODO
-void MiP::timeDrive(int8_t direction, int8_t speed, uint8_t time){
+void MiP::driveForward(int8_t direction, int8_t speed, uint8_t time){
 
 }
-*/
 
-void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
+void MiP::turnLeft(int8_t direction, int8_t angle, uint8_t speed){
 	uint8_t array_length = 4;
 	uint8_t data_array[array_length];
 
@@ -109,49 +103,82 @@ void MiP::turnAngle(int8_t direction, int8_t angle, uint8_t speed){
 	sendMessage(data_array, array_length);
 }
 
-void MiP::setSleep(){
+void MiP::turnRight(int8_t direction, int8_t angle, uint8_t speed){
+	uint8_t array_length = 4;
+	uint8_t data_array[array_length];
+
+	if(direction == 0){
+		data_array[0] = TURN_LEFT_BY_ANGLE;
+	}
+	else if(direction == 1){
+		data_array[0] = TURN_RIGHT_BY_ANGLE;
+	}
+	else{
+		data_array[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
+	};
+
+	if(angle >= 255)angle = 255; //cap angle at max of 255
+	data_array[1] = uint8_t(angle); //Angle in intervals of 5 degrees
+
+	if(speed >= 24)speed = 24; //cap speed at max of 24
+	data_array[2] = uint8_t(speed);
+
+	sendMessage(data_array, array_length);
+}
+
+void MiP::sleep(){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
 	data_array[0] = SLEEP;
 
 	sendMessage(data_array, array_length);
-}/*
-void MiP::continuousDrive(int8_t direction, int8_t speed){
+}
+
+void MiP::driveContinuous(int8_t direction, int8_t speed){
 
 }
-*/
+
 void MiP::stop(void){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
 	data_array[0] = STOP;
+	
 	sendMessage(data_array, array_length);
-}void MiP::setGameMode(Game mode){
+}
+
+void MiP::setGameMode(GameMode mode){
 	uint8_t data_array[2];
 	data_array[0] = SET_GAME_MODE;
 	data_array[1] = mode;
 
 	sendMessage(data_array, 2);
-}/*
+}
+
+GameMode MiP::getGameMode(void){
+	return (GameMode)-1;
+}
+
 void MiP::getStatus(void){
 
-} //TODO create struct for status
-*/
-void MiP::getUp(GetUp state){
+}
+
+void MiP::stand(GetUp state){
 	uint8_t array_length = 2;
 	uint8_t data_array[array_length];
 	data_array[0] = GET_UP;
 	data_array[1] = state;
 
 	sendMessage(data_array, array_length);
-}/*
+}
+
 uint8_t MiP::getWeightStatus(void){
 	uint8_t weight;
 
-	return PLAY_BACK;
-}*/
+	return -1;
+}
 
 // Doesn't work yet.
-void MiP::requestChestLED(unsigned char *answer){
+void MiP::getChestLED(unsigned char *answer){
 	uint8_t question[] = {GET_CHEST_LED};
 	int iteration = 0;
 	/*
@@ -175,7 +202,9 @@ if (0 > answerVal || answerVal > 7)
 
 return answerVal;
 */
-}void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
+}
+
+void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
 	uint8_t array_length = 4;
 	uint8_t data_array[array_length];
 	data_array[0] = SET_CHEST_LED;
@@ -184,67 +213,95 @@ return answerVal;
 	data_array[3] = blue;
 
 	sendMessage(data_array, array_length);
-}/*
+}
+
 void MiP::flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off){
 
 }
-*/
+
 void MiP::setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4){
-	uint8_t array_length = 6;
+	uint8_t array_length = 5;
 	uint8_t data_array[array_length];
-	data_array[0] = 0x8A;
+	data_array[0] = SET_HEAD_LEDS;
 	data_array[1] = light1;
 	data_array[2] = light2;
 	data_array[3] = light3;
 	data_array[4] = light4;
 
 	sendMessage(data_array, array_length);
-}/*
+}
+
 void MiP::getHeadLEDs(void){
 
-} //TODO create struct for head LEDs
+}
 
-uint32_t MiP::getOdometer(void){
+uint32_t MiP::getOdometerReading(void){
 	uint32_t odometer;
 
 	return odometer;
-}*/
+}
+
 void MiP::resetOdometer(void){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
 	data_array[0] = RESET_ODOMETER;
 
 	sendMessage(data_array, array_length);
-}/*
-void MiP::setGestureDetectMode(int8_t mode){
+}
+
+void MiP::enableGestureDetect(void){
+	uint8_t data_array[] = {DETECTION_MODE, ENABLE_GESTURE_DETECT};
+	
+	sendMessage(data_array, 2);
+}
+
+void MiP::disableGestureDetect(void){
+	uint8_t data_array[] = {DETECTION_MODE, DISABLE_GESTURE_DETECT};
+	
+	sendMessage(data_array, 2);
+}
+
+boolean MiP::isGestureDetectEnabled(void){
+	return false;
+}
+
+void MiP::enableRadarMode(void){
+	uint8_t data_array[] = {DETECTION_MODE, ENABLE_RADAR_DETECT};
+	
+	sendMessage(data_array, 2);
+}
+
+void MiP::disableRadarMode(void){
+	uint8_t data_array[] = {DETECTION_MODE, DISABLE_RADAR_DETECT};
+	
+	sendMessage(data_array, 2);
+}
+
+void MiP::setDetectionMode(int8_t mode, int8_t power){
 
 }
-int8_t MiP::getGestureDetectMode(void){
-	int8_t mode;
 
-	return mode;
-}int8_t MiP::getGestureDetect(void){
-	int8_t detection;
-
-	return detection;
-}int8_t MiP::getRadarDetect(void){
-	int8_t detection;
-
-	return detection;
-}void MiP::setDetectionMode(int8_t mode, int8_t power){
-
-}
 void MiP::getDetectionMode(void){
 
-} //TODO create structure for detection mode
+}
 
-int8_t MiP::getShakeDetection(void){
-	int8_t shake;
+boolean MiP::isShakeDetected(void){
+	return false;
+}
 
-	return shake;
-}void MiP::setIRcontrol(int8_t mode){}
-*/
-boolean MiP::getIRcontrol(void){
+void MiP::setIRControlEnabled(){
+	uint8_t data_array[] = {SET_IR_CONTROL_STATUS, ENABLE_IR_CONTROL};
+	
+	sendMessage(data_array, 2);	
+}
+
+void MiP::setIRControlDisabled(){
+	uint8_t data_array[] = {SET_IR_CONTROL_STATUS, DISABLE_IR_CONTROL};
+	
+	sendMessage(data_array, 2);		
+}
+
+boolean MiP::isIRControlEnabled(void){
 	int answerVal = -1;
 	uint8_t answer[2];
 	uint8_t question[] = {GET_IR_CONTROL_STATUS};
@@ -267,24 +324,28 @@ boolean MiP::getIRcontrol(void){
 		}
 		iteration++;
 	}
-}/*
-int8_t MiP::ping(void){
-	int8_t ping;
+}
 
-	return ping;
-}void MiP::setEEPROMData(int8_t addr, uint8_t data){
+void MiP::setUserData(int8_t addr, uint8_t data){
 
 }
-uint8_t MiP::getEEPROMData(int8_t addr){
+uint8_t MiP::getUserData(int8_t addr){
 	uint8_t data;
 	return data;
-}void MiP::getSoftwareVersion(int8_t* version){
+}
+
+void MiP::getSoftwareVersion(int8_t* version){
 
 }
+
+void MiP::getVoiceHardwareVersion(int8_t* version){
+
+}
+
 void MiP::getHardwareVersion(int8_t* version){
 
 }
-*/
+
 void MiP::setVolume(int8_t volume){
 	uint8_t array_length = 2;
 	uint8_t data_array[array_length];
@@ -321,11 +382,11 @@ int8_t MiP::getVolume(){
 	return answerVal;
 }
 
-void MiP::setClapDetection(int8_t noOfClaps){
+void MiP::setClapDetectionEnabled(void){
 	uint8_t array_length = 2;
 	uint8_t data_array[array_length];
 	data_array[0] = SET_CLAP_DETECTION;
-	data_array[1] = noOfClaps;
+	data_array[1] = 0x01;
 
 	sendMessage(data_array, array_length);
 }
@@ -357,16 +418,16 @@ boolean MiP::isClapDetectionEnabled(void){
 
 	if(answerVal == 0x00){
 		return false;
-	} 
+	}
 	else {
 		return true;
 	}
 }
-/*
+
 void MiP::getClapsRecieved(int8_t* claps){
 
 }
-*/
+
 void MiP::disconnectApp(){
 	uint8_t array_length = 1;
 	uint8_t data_array[array_length];
