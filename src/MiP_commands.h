@@ -10,14 +10,20 @@
 #include "MiP_sounds.h"
 #include "MiP_Parameters.h"
 #include <Arduino.h>
+using namespace std;
 
-struct _LEDColor;
+struct SoftwareVersion {
+	int year;
+	int month;
+	int day;
+	int number;
+};
 
 class MiP {
 
 public:
-
-	MiP(int8_t UART_Select_S, int8_t UART_Select_R);
+	
+	MiP(int8_t UART_Select_S/*, int8_t UART_Select_R*/);
 	
 	~MiP();
 
@@ -42,7 +48,7 @@ public:
 	GameMode getGameMode(void);
 	
 	void stop(void);
-		
+	
 	void getStatus(void);
 
 	void stand(GetUp state);
@@ -99,15 +105,15 @@ public:
 	
 	uint8_t getUserData(int8_t addr);
 
-	void getSoftwareVersion(int8_t* version);
+	SoftwareVersion getSoftwareVersion(void);
 
-	void getVoiceHardwareVersion(int8_t* version);
+	int8_t getVoiceHardwareVersion(void);
 	
-	void getHardwareVersion(int8_t* version);
+	int8_t getHardwareVersion(void);
 
-	void setVolume(int8_t volume);
+	void setVolume(uint8_t volume);
 	
-	int8_t getVolume();
+	int8_t getVolume(void);
 
 	void sendIRDongleCode(int8_t input);
 	
@@ -122,14 +128,36 @@ public:
 	void setClapDelayTime(uint8_t delayTime);
 	
 	uint8_t getClapDelayTime();
-		
+	
 	void getClapsRecieved(int8_t* claps);
 	
-	private:
+	void enableDebug();
+	
+	void disableDebug();
+	
+private:
+	
+	SoftwareVersion softwareVersion;
+		
+	int8_t voiceHardwareVersion;
+	
+	int8_t hardwareVersion;
+
+	int8_t volume;
+	
+	GameMode gameMode;
 	
 	int8_t _UART_Select_S; //Variable to store UART Select pin. Default is D2
 	
 	int8_t _UART_Select_R;
+	
+	boolean debug;
+	
+	void debugOutput(unsigned char *message);
+	
+	void debugOutput(const char *message);
+	
+	void debugOutput(uint8_t message);
 	
 	void sendMessage(unsigned char *message, uint8_t array_length);
 	

@@ -50,6 +50,7 @@ enum Parameters{
 };
 
 enum GameMode{
+	INVALID = -1,
 	APP = 1,
 	PLAY_BACK,
 	TRACKING,
@@ -85,8 +86,11 @@ enum Commands{
 	DETECTION_MODE = 0x0A,
 	SET_IR_CONTROL_STATUS = 0x10,
 	GET_IR_CONTROL_STATUS = 0x11,
+	GET_SW_VERSION = 0x14,
 	SET_VOLUME = 0x15,
 	GET_VOLUME = 0x16,
+	GET_VOICE_HW_VERSION = 0x19,
+	GET_HW_VERSION = 0x19,
 	SET_CLAP_DETECTION = 0x1D,
 	GET_CLAP_DETECTION = 0x1E,
 	GET_UP = 0x23,
@@ -95,6 +99,7 @@ enum Commands{
 	TURN_RIGHT_BY_ANGLE = 0x74,
 	SET_GAME_MODE = 0x76,
 	STOP = 0x77,
+	GET_GAME_MODE = 0x82,
 	GET_CHEST_LED = 0x83,
 	SET_CHEST_LED = 0x84,
 	RESET_ODOMETER = 0x86,
@@ -104,7 +109,7 @@ enum Commands{
 };
 
 enum Comms{
-	MAX_RETRIES = 15,
+	MAX_RETRIES = 30,
 	BAUD_RATE = 115200
 };
 #endif /* MIP_PARAMETERS_H_ */
