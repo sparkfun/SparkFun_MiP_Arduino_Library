@@ -8,17 +8,17 @@
 #include "MiP_Parameters.h"
 #include <avr/io.h>
 
-MiP::MiP(int8_t UART_Select_S/*, int8_t UART_Select_R*/) {
+MiP::MiP(int8_t UART_Select_S) {
 	_UART_Select_S = UART_Select_S; //bring variable into a private variable.
-	//_UART_Select_R = UART_Select_R; //bring variable into a private variable.
 	pinMode(_UART_Select_S, OUTPUT);
-	//pinMode(_UART_Select_R, INPUT);
 	
 	volume = -1;
 	voiceHardwareVersion = -1;
 	hardwareVersion = -1;
 	gameMode = INVALID;
-	softwareVersion = {-1,-1,-1,-1};
+	softwareVersion = {-1, -1, -1, -1};
+	headLEDs = {-1, -1, -1, -1};
+	chestLEDs = {-1, -1, -1, -1, -1};
 	
 	debug = false;
 }
@@ -29,57 +29,49 @@ MiP::~MiP() {
 void MiP::init(void){
 	Serial.begin(BAUD_RATE);
 	uint8_t initString[] = {0xFF};
-	//uint8_t array_length = 9;
-	//uint8_t data_array[] = "TTM:OK\r\n";
-	//sendMessage(data_array, array_length);
 	sendMessage(initString, 1);
 	setVolume(0);
 }
 
 void MiP::playSound(Sounds MiPSound, uint8_t delayInterval, uint8_t repeatTimes){
-	uint8_t array_length = 4;
-	uint8_t data_array[array_length];
-	data_array[0] = PLAY_SOUND; //Play sound command from WowWee documentation
-	data_array[1] = MiPSound; //User selected sound
-	data_array[2] = delayInterval;
-	data_array[3] = repeatTimes;
+	uint8_t message[] = {PLAY_SOUND, MiPSound, delayInterval, repeatTimes};
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, 4);
 }
 
 void MiP::setPosition(Position pose){
-	uint8_t data_array[] = {SET_POSITION, pose};
+	uint8_t message[] = {SET_POSITION, pose};
 
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 void MiP::driveForward(int16_t distance, int16_t angle){
-	uint8_t array_length = 7;
-	uint8_t data_array[array_length];
-	data_array[0] = DRIVE_DISTANCE; //Drive Distance Command
+	uint8_t arrayLength = 7;
+	uint8_t message[arrayLength];
+	message[0] = DRIVE_DISTANCE; //Drive Distance Command
 
 	if(distance >=0){
-		data_array[1] = 0x00; // Forward
+		message[1] = 0x00; // Forward
 	}
 	else{
-		data_array[1] = 0x01; // Reverse
+		message[1] = 0x01; // Reverse
 	};
-	data_array[2] = uint8_t(distance);
+	message[2] = uint8_t(distance);
 
 	if(angle >=0){
-		data_array[3] = 0x01; // Clockwise
+		message[3] = 0x01; // Clockwise
 	}
 	else{
-		data_array[3] = 0x00; // Counter Clockwise
+		message[3] = 0x00; // Counter Clockwise
 	};
 
 	angle = angle & 0x7fff; //remove direction from angle
 	if(angle >= 360)angle = 360; //cap rotation at 360 deg
 
-	data_array[4] = uint8_t(angle >> 8);
-	data_array[5] = uint8_t(angle);
+	message[4] = uint8_t(angle >> 8);
+	message[5] = uint8_t(angle);
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, arrayLength);
 }
 
 void MiP::driveForward(int8_t direction, int8_t speed, uint8_t time){
@@ -87,55 +79,55 @@ void MiP::driveForward(int8_t direction, int8_t speed, uint8_t time){
 }
 
 void MiP::turnLeft(int8_t direction, int8_t angle, uint8_t speed){
-	uint8_t array_length = 4;
-	uint8_t data_array[array_length];
+	uint8_t arrayLength = 4;
+	uint8_t message[arrayLength];
 
 	if(direction == 0){
-		data_array[0] = TURN_LEFT_BY_ANGLE;
+		message[0] = TURN_LEFT_BY_ANGLE;
 	}
 	else if(direction == 1){
-		data_array[0] = TURN_RIGHT_BY_ANGLE;
+		message[0] = TURN_RIGHT_BY_ANGLE;
 	}
 	else{
-		data_array[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
+		message[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
 	};
 
 	if(angle >= 255)angle = 255; //cap angle at max of 255
-	data_array[1] = uint8_t(angle); //Angle in intervals of 5 degrees
+	message[1] = uint8_t(angle); //Angle in intervals of 5 degrees
 
 	if(speed >= 24)speed = 24; //cap speed at max of 24
-	data_array[2] = uint8_t(speed);
+	message[2] = uint8_t(speed);
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, arrayLength);
 }
 
 void MiP::turnRight(int8_t direction, int8_t angle, uint8_t speed){
-	uint8_t array_length = 4;
-	uint8_t data_array[array_length];
+	uint8_t arrayLength = 4;
+	uint8_t message[arrayLength];
 
 	if(direction == 0){
-		data_array[0] = TURN_LEFT_BY_ANGLE;
+		message[0] = TURN_LEFT_BY_ANGLE;
 	}
 	else if(direction == 1){
-		data_array[0] = TURN_RIGHT_BY_ANGLE;
+		message[0] = TURN_RIGHT_BY_ANGLE;
 	}
 	else{
-		data_array[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
+		message[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
 	};
 
 	if(angle >= 255)angle = 255; //cap angle at max of 255
-	data_array[1] = uint8_t(angle); //Angle in intervals of 5 degrees
+	message[1] = uint8_t(angle); //Angle in intervals of 5 degrees
 
 	if(speed >= 24)speed = 24; //cap speed at max of 24
-	data_array[2] = uint8_t(speed);
+	message[2] = uint8_t(speed);
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, arrayLength);
 }
 
 void MiP::sleep(){
-	uint8_t data_array[] = {SLEEP};
+	uint8_t message[] = {SLEEP};
 
-	sendMessage(data_array, 1);
+	sendMessage(message, 1);
 }
 
 void MiP::driveContinuous(int8_t direction, int8_t speed){
@@ -143,15 +135,15 @@ void MiP::driveContinuous(int8_t direction, int8_t speed){
 }
 
 void MiP::stop(void){
-	uint8_t data_array[] = {STOP};
+	uint8_t message[] = {STOP};
 	
-	sendMessage(data_array, 1);
+	sendMessage(message, 1);
 }
 
 void MiP::setGameMode(GameMode mode){
-	uint8_t data_array[] = {SET_GAME_MODE, (uint8_t)mode};
+	uint8_t message[] = {SET_GAME_MODE, (uint8_t)mode};
 
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 GameMode MiP::getGameMode(void){
@@ -184,12 +176,12 @@ void MiP::getStatus(void){
 }
 
 void MiP::stand(GetUp state){
-	uint8_t array_length = 2;
-	uint8_t data_array[array_length];
-	data_array[0] = GET_UP;
-	data_array[1] = state;
+	uint8_t arrayLength = 2;
+	uint8_t message[arrayLength];
+	message[0] = GET_UP;
+	message[1] = state;
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, arrayLength);
 }
 
 uint8_t MiP::getWeightStatus(void){
@@ -199,7 +191,7 @@ uint8_t MiP::getWeightStatus(void){
 }
 
 // Doesn't work yet.
-void MiP::getChestLED(unsigned char *answer){
+ChestLEDs MiP::getChestLEDs(void){
 	uint8_t question[] = {GET_CHEST_LED};
 	int iteration = 0;
 	/*
@@ -220,40 +212,31 @@ while ((MIN_VOLUME > answerVal || answerVal > MAX_VOLUME) && iteration < MAX_RET
 }// One more value check in case last try produced invalid result.
 if (0 > answerVal || answerVal > 7)
 	return -1;
-
-return answerVal;
 */
+	return chestLEDs;
+
 }
 
 void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
-	uint8_t array_length = 4;
-	uint8_t data_array[array_length];
-	data_array[0] = SET_CHEST_LED;
-	data_array[1] = red;
-	data_array[2] = green;
-	data_array[3] = blue;
+	uint8_t message[] = {SET_CHEST_LED, red, green, blue};
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, 4);
 }
 
-void MiP::flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off){
-
+void MiP::flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t timeOn, uint8_t timeOff){
+	uint8_t message[] = {FLASH_CHEST_LED, red, green, blue, timeOn, timeOff};
+	
+	sendMessage(message, 6);
 }
 
 void MiP::setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4){
-	uint8_t array_length = 5;
-	uint8_t data_array[array_length];
-	data_array[0] = SET_HEAD_LEDS;
-	data_array[1] = light1;
-	data_array[2] = light2;
-	data_array[3] = light3;
-	data_array[4] = light4;
+	uint8_t message[] = {SET_HEAD_LEDS, light1, light2, light3, light4};
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, 5);
 }
 
-void MiP::getHeadLEDs(void){
-
+HeadLEDs MiP::getHeadLEDs(void){
+	return headLEDs;
 }
 
 uint32_t MiP::getOdometerReading(void){
@@ -263,21 +246,21 @@ uint32_t MiP::getOdometerReading(void){
 }
 
 void MiP::resetOdometer(void){
-	uint8_t data_array[] = {RESET_ODOMETER};
+	uint8_t message[] = {RESET_ODOMETER};
 
-	sendMessage(data_array, 1);
+	sendMessage(message, 1);
 }
 
 void MiP::enableGestureDetect(void){
-	uint8_t data_array[] = {DETECTION_MODE, ENABLE_GESTURE_DETECT};
+	uint8_t message[] = {DETECTION_MODE, ENABLE_GESTURE_DETECT};
 	
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 void MiP::disableGestureDetect(void){
-	uint8_t data_array[] = {DETECTION_MODE, DISABLE_GESTURE_DETECT};
+	uint8_t message[] = {DETECTION_MODE, DISABLE_GESTURE_DETECT};
 	
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 boolean MiP::isGestureDetectEnabled(void){
@@ -285,15 +268,15 @@ boolean MiP::isGestureDetectEnabled(void){
 }
 
 void MiP::enableRadarMode(void){
-	uint8_t data_array[] = {DETECTION_MODE, ENABLE_RADAR_DETECT};
+	uint8_t message[] = {DETECTION_MODE, ENABLE_RADAR_DETECT};
 	
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 void MiP::disableRadarMode(void){
-	uint8_t data_array[] = {DETECTION_MODE, DISABLE_RADAR_DETECT};
+	uint8_t message[] = {DETECTION_MODE, DISABLE_RADAR_DETECT};
 	
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 void MiP::setDetectionMode(int8_t mode, int8_t power){
@@ -309,15 +292,15 @@ boolean MiP::isShakeDetected(void){
 }
 
 void MiP::setIRControlEnabled(){
-	uint8_t data_array[] = {SET_IR_CONTROL_STATUS, ENABLE_IR_CONTROL};
+	uint8_t message[] = {SET_IR_CONTROL_STATUS, ENABLE_IR_CONTROL};
 	
-	sendMessage(data_array, 2);	
+	sendMessage(message, 2);	
 }
 
 void MiP::setIRControlDisabled(){
-	uint8_t data_array[] = {SET_IR_CONTROL_STATUS, DISABLE_IR_CONTROL};
+	uint8_t message[] = {SET_IR_CONTROL_STATUS, DISABLE_IR_CONTROL};
 	
-	sendMessage(data_array, 2);		
+	sendMessage(message, 2);		
 }
 
 boolean MiP::isIRControlEnabled(void){
@@ -369,17 +352,20 @@ SoftwareVersion MiP::getSoftwareVersion(){
 				if (answer[0] == GET_SW_VERSION) {
 					debugOutput("Right!");
 					softwareVersion.year = answer[1];
+					softwareVersion.month = answer[2];
+					softwareVersion.day = answer[3];
+					softwareVersion.number = answer[4];
 				} else {
 					debugOutput(":(");
 					debugOutput(answer[0]);
 				}
 			}
-			else
-			{
-				while (Serial.available()){
-					Serial.read();
-				}
-			}
+			// else
+			// {
+				// while (Serial.available()){
+					// Serial.read();
+				// }
+			// }
 			iteration++;
 		}
 	}
@@ -451,9 +437,9 @@ int8_t MiP::getHardwareVersion(){
 }
 
 void MiP::setVolume(uint8_t newVolume){
-	uint8_t data_array[] = {SET_VOLUME, newVolume};
+	uint8_t message[] = {SET_VOLUME, newVolume};
 
-	sendMessage(data_array, 2);
+	sendMessage(message, 2);
 }
 
 int8_t MiP::getVolume(){
@@ -488,12 +474,15 @@ int8_t MiP::getVolume(){
 }
 
 void MiP::setClapDetectionEnabled(void){
-	uint8_t array_length = 2;
-	uint8_t data_array[array_length];
-	data_array[0] = SET_CLAP_DETECTION;
-	data_array[1] = 0x01;
+	uint8_t message[] = {SET_CLAP_DETECTION, 0x01};
 
-	sendMessage(data_array, array_length);
+	sendMessage(message, 2);
+}
+
+void MiP::setClapDetectionDisabled(void){
+	uint8_t message[] = {SET_CLAP_DETECTION, 0x00};
+
+	sendMessage(message, 2);	
 }
 
 boolean MiP::isClapDetectionEnabled(void){
@@ -530,15 +519,17 @@ boolean MiP::isClapDetectionEnabled(void){
 	}
 }
 
-void MiP::getClapsRecieved(int8_t* claps){
-
+int8_t MiP::getClapsDetected(){
+	uint8_t message[] = {GET_CLAP_DETECTED};
+	
+	sendMessage(message, 1);
+	// Not finished.
 }
 
 void MiP::disconnectApp(){
-	uint8_t array_length = 1;
-	uint8_t data_array[array_length];
-	data_array[0] = SET_DISCONNECT_APP;
-	sendMessage(data_array, array_length);
+	uint8_t message[] = {SET_DISCONNECT_APP};
+	
+	sendMessage(message, 1);
 }
 
 void MiP::enableDebug(){
@@ -551,17 +542,17 @@ void MiP::disableDebug(){
 
 // Private Functions
 
-void MiP::sendMessage(unsigned char *message, uint8_t array_length){
+void MiP::sendMessage(unsigned char *message, uint8_t arrayLength){
 	digitalWrite(_UART_Select_S, HIGH);
 	delay(5);
 	uint8_t i = 0;
-	for(i; i < array_length; i++){
+	for(i; i < arrayLength; i++){
 		Serial.write(message[i]);
 	}
-	//Serial.write(0x00);
+	Serial.write(0x00);
 	delay(5);
 	digitalWrite(_UART_Select_S, LOW);
-	delay(10);
+	delay(5);
 }
 
 void MiP::getMessage(unsigned char *answer, int byteCount) {
@@ -570,13 +561,12 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 	uint8_t recvHigh;
 	uint8_t recvLow;
 	int i = 0;
-	//digitalWrite(_UART_Select_S, LOW);
+	debugOutput("Avail: ");
+	debugOutput(Serial.available());
 	// Exit loop if at any time an invalid ASCII character is detected.
-	while(i < byteCount && validChar) {
+	while(i < byteCount && validChar && Serial.available() >= 2) {
 		debugOutput(" loop");
-		delay(100);
 		recvHigh = Serial.read();
-		
 		// A valid ASCII character will have MSB=0011b (0x30)
 		if((recvHigh & 0xF0) != 0x30){
 			debugOutput("  Invalid MSB: ");
@@ -588,9 +578,7 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 			recvHigh = recvHigh & 0x0F;
 			// Shift some bits to prepare for concatenation of bytes.
 			recvHigh = recvHigh << 4;
-			delay(100);
 			recvLow = Serial.read();
-			//Serial.flush();
 			// Again, check for an invalid character.
 			if((recvLow & 0xF0) != 0x30){
 				debugOutput("  Invalid LSB: ");
@@ -607,17 +595,17 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 			}
 		}
 		i++;
-		delay(500);
 	}
-	//digitalWrite(_UART_Select_S, HIGH);
 	// If there was an invalid char during this getMessage, let caller know with -1.
 	if(!validChar){
 		for(int j = 0; j < byteCount; j++){
 			answer[j] = -1;
 		}
-		while(Serial.available()){
-			Serial.read();
-		}
+
+	}
+	// Wipe out the remaining bytes available for read.
+	while(Serial.available()){
+		Serial.read();
 	}
 	debugOutput("end getMessage");
 }
@@ -625,20 +613,20 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 void MiP::debugOutput(unsigned char *message){
 	if(debug){
 		Serial.println((unsigned char&)message);
-		delay(500);
+		delay(1000);
 	}
 }
 
 void MiP::debugOutput(const char *message){
 	if(debug){
 		Serial.println(message);
-		delay(500);	
+		delay(1000);	
 	}
 }
 
 void MiP::debugOutput(uint8_t message){
 	if(debug){
 		Serial.println(message, HEX);
-		delay(500);	
+		delay(1000);	
 	}
 }

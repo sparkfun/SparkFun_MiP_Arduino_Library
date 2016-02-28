@@ -19,11 +19,26 @@ struct SoftwareVersion {
 	int number;
 };
 
+struct ChestLEDs {
+	int red;
+	int green;
+	int blue;
+	int timeOn;
+	int timeOff;
+};
+
+struct HeadLEDs {
+	int light1;
+	int light2;
+	int light3;
+	int light4;
+};
+
 class MiP {
 
 public:
 	
-	MiP(int8_t UART_Select_S/*, int8_t UART_Select_R*/);
+	MiP(int8_t UART_Select_S);
 	
 	~MiP();
 
@@ -55,15 +70,15 @@ public:
 	
 	uint8_t getWeightStatus(void);
 	
-	void getChestLED(unsigned char *answer);
+	ChestLEDs getChestLEDs(void);
 	
 	void setChestLED(uint8_t red, uint8_t green, uint8_t blue);
 	
-	void flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t time_on, uint8_t time_off);
+	void flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t timeOn, uint8_t timeOff);
 	
 	void setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4);
 	
-	void getHeadLEDs(void);
+	HeadLEDs getHeadLEDs(void);
 
 	uint32_t getOdometerReading(void);
 	
@@ -129,7 +144,7 @@ public:
 	
 	uint8_t getClapDelayTime();
 	
-	void getClapsRecieved(int8_t* claps);
+	int8_t getClapsDetected();
 	
 	void enableDebug();
 	
@@ -138,6 +153,10 @@ public:
 private:
 	
 	SoftwareVersion softwareVersion;
+	
+	HeadLEDs headLEDs;
+	
+	ChestLEDs chestLEDs;
 		
 	int8_t voiceHardwareVersion;
 	
@@ -148,8 +167,6 @@ private:
 	GameMode gameMode;
 	
 	int8_t _UART_Select_S; //Variable to store UART Select pin. Default is D2
-	
-	int8_t _UART_Select_R;
 	
 	boolean debug;
 	
