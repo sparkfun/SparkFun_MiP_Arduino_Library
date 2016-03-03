@@ -11,12 +11,13 @@
 MiP::MiP(int8_t UART_Select_S) {
 	_UART_Select_S = UART_Select_S; //bring variable into a private variable.
 	pinMode(_UART_Select_S, OUTPUT);
+	pinMode(13, OUTPUT);
 	
 	volume = -1;
 	voiceHardwareVersion = -1;
 	hardwareVersion = -1;
 	gameMode = INVALID;
-	softwareVersion = {-1, -1, -1, -1};
+	softwareVersion = {false, 0x00, 0x00, 0x00, 0x00};
 	headLEDs = {-1, -1, -1, -1};
 	chestLEDs = {-1, -1, -1, -1, -1};
 	
@@ -31,6 +32,9 @@ void MiP::init(void){
 	uint8_t initString[] = {0xFF};
 	sendMessage(initString, 1);
 	setVolume(0);
+	while (Serial.available()){
+		Serial.read();
+	}
 }
 
 void MiP::playSound(Sounds MiPSound, uint8_t delayInterval, uint8_t repeatTimes){
@@ -337,20 +341,20 @@ uint8_t MiP::getUserData(int8_t addr){
 	return data;
 }
 
-SoftwareVersion MiP::getSoftwareVersion(){
-	debugOutput(softwareVersion.year);
-	if(softwareVersion.year == -1){
+SoftwareVersion MiP::getSoftwareVersion(void){
+	if(!softwareVersion.isSet){
 		uint8_t question[] = {GET_SW_VERSION};		
 		uint8_t answer[5];
 		int iteration = 0;
 		
-		while ((softwareVersion.year == -1) && iteration < MAX_RETRIES) {
+		while (!softwareVersion.isSet && iteration < MAX_RETRIES) {
 			debugOutput(iteration);
 			sendMessage(question, 1);
-			if (Serial.available()) {
+			if (Serial.available() == 10) {
 				getMessage(answer, 5);
 				if (answer[0] == GET_SW_VERSION) {
 					debugOutput("Right!");
+					softwareVersion.isSet = true;
 					softwareVersion.year = answer[1];
 					softwareVersion.month = answer[2];
 					softwareVersion.day = answer[3];
@@ -360,12 +364,12 @@ SoftwareVersion MiP::getSoftwareVersion(){
 					debugOutput(answer[0]);
 				}
 			}
-			// else
-			// {
-				// while (Serial.available()){
-					// Serial.read();
-				// }
-			// }
+			else
+			{
+				while (Serial.available()){
+					Serial.read();
+				}
+			}
 			iteration++;
 		}
 	}
@@ -382,10 +386,11 @@ int8_t MiP::getVoiceHardwareVersion(){
 			debugOutput(iteration);
 			sendMessage(question, 1);
 			if (Serial.available() == 6) {
-				getMessage(answer, 2);
+				getMessage(answer, 3);
 				if (answer[0] == GET_VOICE_HW_VERSION) {
 					debugOutput("Right!");
 					voiceHardwareVersion = answer[1];
+					hardwareVersion = answer[2];
 				} else {
 					debugOutput(":(");
 					debugOutput(answer[0]);
@@ -406,7 +411,7 @@ int8_t MiP::getVoiceHardwareVersion(){
 int8_t MiP::getHardwareVersion(){
 	if(hardwareVersion == -1){
 		uint8_t question[] = {GET_HW_VERSION};		
-		uint8_t answer[3];
+		uint8_t answer[2];
 		int iteration = 0;
 		
 		while ((hardwareVersion == -1) && iteration < MAX_RETRIES) {
@@ -416,6 +421,7 @@ int8_t MiP::getHardwareVersion(){
 				getMessage(answer, 3);
 				if (answer[0] == GET_HW_VERSION) {
 					debugOutput("Right!");
+					voiceHardwareVersion = answer[1];
 					hardwareVersion = answer[2];
 				} else {
 					debugOutput(":(");
@@ -424,9 +430,7 @@ int8_t MiP::getHardwareVersion(){
 			}
 			else
 			{
-				debugOutput("no data");
-				//debugOutput(Serial.available());
-				while (Serial.available()) {
+				while (Serial.available()){
 					Serial.read();
 				}
 			}
@@ -540,6 +544,13 @@ void MiP::disableDebug(){
 	debug = false;
 }
 
+void MiP::simpleAck() {
+	digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+	delay(1000);              // wait for a second
+	digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
+	delay(1000);              // wait for a second
+}
+
 // Private Functions
 
 void MiP::sendMessage(unsigned char *message, uint8_t arrayLength){
@@ -561,14 +572,13 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 	uint8_t recvHigh;
 	uint8_t recvLow;
 	int i = 0;
-	debugOutput("Avail: ");
-	debugOutput(Serial.available());
 	// Exit loop if at any time an invalid ASCII character is detected.
-	while(i < byteCount && validChar && Serial.available() >= 2) {
+	while(i < byteCount && validChar) {
+		debugOutput("Avail: ");
+		debugOutput(Serial.available());
 		debugOutput(" loop");
-		recvHigh = Serial.read();
-		// A valid ASCII character will have MSB=0011b (0x30)
-		if((recvHigh & 0xF0) != 0x30){
+		recvHigh = Serial.read();		
+		if(!isASCIIEncodedHex(recvHigh)){
 			debugOutput("  Invalid MSB: ");
 			debugOutput(recvHigh);
 			validChar = false;
@@ -579,8 +589,7 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 			// Shift some bits to prepare for concatenation of bytes.
 			recvHigh = recvHigh << 4;
 			recvLow = Serial.read();
-			// Again, check for an invalid character.
-			if((recvLow & 0xF0) != 0x30){
+			if(!isASCIIEncodedHex(recvLow)){
 				debugOutput("  Invalid LSB: ");
 				debugOutput(recvLow);
 				validChar = false;
@@ -592,6 +601,7 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 				recvHigh = recvHigh + recvLow;
 				answer[i] = recvHigh;
 				debugOutput("  Complete byte");
+				debugOutput(recvHigh);
 			}
 		}
 		i++;
@@ -601,11 +611,10 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 		for(int j = 0; j < byteCount; j++){
 			answer[j] = -1;
 		}
-
-	}
-	// Wipe out the remaining bytes available for read.
-	while(Serial.available()){
-		Serial.read();
+		// Wipe out the remaining bytes available for read.
+		while(Serial.available()){
+			Serial.read();
+		}
 	}
 	debugOutput("end getMessage");
 }
@@ -613,20 +622,27 @@ void MiP::getMessage(unsigned char *answer, int byteCount) {
 void MiP::debugOutput(unsigned char *message){
 	if(debug){
 		Serial.println((unsigned char&)message);
-		delay(1000);
+		Serial.flush();
 	}
 }
 
 void MiP::debugOutput(const char *message){
 	if(debug){
 		Serial.println(message);
-		delay(1000);	
+		Serial.flush();	
 	}
 }
 
 void MiP::debugOutput(uint8_t message){
 	if(debug){
 		Serial.println(message, HEX);
-		delay(1000);	
+		Serial.flush();	
 	}
+}
+
+boolean MiP::isASCIIEncodedHex(uint8_t inValue){
+	if((inValue & 0xF0) != 0x30 || (inValue & 0xF0) != 0x40){
+		return true;
+	}
+	return false;
 }

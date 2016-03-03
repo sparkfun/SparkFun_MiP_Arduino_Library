@@ -15,23 +15,23 @@
 
 MiP MyMiP(2);
 
-int localVolume = -1;
-int localVoiceVersion = -1;
-int localVersion = -1;
-SoftwareVersion localSWVersion = { -1, -1, -1, -1};
+uint8_t localVolume = 0;
+uint8_t localVoiceVersion = 0;
+uint8_t localHWVersion = 0;
+SoftwareVersion localSWVersion = {false, 0, 0, 0, 0};
 int soundIndex = 1;
 
 void setup() {
   MyMiP.init(); //Serial port is configured for 115200
-  Serial.println("MiP init.");
-  delay(3000); // Need a delay to let the buffer clear
+  //Serial.println("MiP init.");
+  delay(1000); // Need a delay to let the buffer clear
 
-
-  MyMiP.enableDebug();
+  //MyMiP.enableDebug();
   testSoftwareVersion();
+  testVoiceHardwareVersion();
   testHardwareVersion();
+  testVolume();
   MyMiP.disableDebug();
-  //MyMiP.setVolume(3);
 }
 
 
@@ -73,27 +73,27 @@ void testVolume() {
   }
 }
 
-void testVoiceHardware() {
+void testVoiceHardwareVersion() {
   localVoiceVersion = MyMiP.getVoiceHardwareVersion();
   if (localVoiceVersion == -1) {
     Serial.println("Failed getting voice chip version");
     delay(1000);
   } else {
     Serial.print("Voice Hardware version: ");
-    Serial.print(localVoiceVersion);
+    Serial.print(localVoiceVersion, HEX);
     Serial.print('\n');
     delay(1000);
   }
 }
 
 void testHardwareVersion() {
-  localVersion = MyMiP.getHardwareVersion();
-  if (localVersion == -1) {
+  localHWVersion = MyMiP.getHardwareVersion();
+  if (localHWVersion == -1) {
     Serial.println("Failed getting HW version");
     delay(1000);
   } else {
-    Serial.print("Voice Hardware version: ");
-    Serial.print(localVersion);
+    Serial.print("Hardware version: ");
+    Serial.print(localHWVersion, HEX);
     Serial.print('\n');
     delay(1000);
   }
@@ -101,12 +101,18 @@ void testHardwareVersion() {
 
 void testSoftwareVersion() {
   localSWVersion = MyMiP.getSoftwareVersion();
-  if (localSWVersion.year == -1) {
+  if (!localSWVersion.isSet) {
     Serial.println("Failed getting SW version");
     delay(1000);
   } else {
     Serial.print("Software version: ");
-    Serial.print(localSWVersion.year);
+    Serial.print(localSWVersion.year, HEX);
+    Serial.print('.');
+    Serial.print(localSWVersion.month, HEX);
+    Serial.print('.');
+    Serial.print(localSWVersion.day, HEX);
+    Serial.print('.');
+    Serial.print(localSWVersion.number, HEX);
     Serial.print('\n');
     delay(1000);
   }

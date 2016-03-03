@@ -13,10 +13,11 @@
 using namespace std;
 
 struct SoftwareVersion {
-	int year;
-	int month;
-	int day;
-	int number;
+	boolean isSet;
+	uint8_t year;
+	uint8_t month;
+	uint8_t day;
+	uint8_t number;
 };
 
 struct ChestLEDs {
@@ -150,6 +151,9 @@ public:
 	
 	void disableDebug();
 	
+	void simpleAck(); // Another attempt at debugging.  How about flashing the LED instead
+					  // of writing to serial?
+	
 private:
 	
 	SoftwareVersion softwareVersion;
@@ -160,7 +164,7 @@ private:
 		
 	int8_t voiceHardwareVersion;
 	
-	int8_t hardwareVersion;
+	uint8_t hardwareVersion;
 
 	int8_t volume;
 	
@@ -181,6 +185,9 @@ private:
 	void getMessage(unsigned char *answer, int byteCount);
 	
 	uint8_t answer[8]; //Variable to store returned data from MiP
+	
+	boolean isASCIIEncodedHex(uint8_t inValue);
+	
 };
 
 #endif /* MIP_COMMANDS_H_ */

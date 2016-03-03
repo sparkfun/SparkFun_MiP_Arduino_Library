@@ -111,7 +111,7 @@ enum Commands{
 };
 
 enum Comms{
-	MAX_RETRIES = 15,
+	MAX_RETRIES = 20,
 	BAUD_RATE = 115200
 };
 #endif /* MIP_PARAMETERS_H_ */
