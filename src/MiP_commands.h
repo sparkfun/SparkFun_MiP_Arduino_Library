@@ -13,7 +13,6 @@
 using namespace std;
 
 struct SoftwareVersion {
-	boolean isSet;
 	uint8_t year;
 	uint8_t month;
 	uint8_t day;
@@ -21,18 +20,18 @@ struct SoftwareVersion {
 };
 
 struct ChestLEDs {
-	int red;
-	int green;
-	int blue;
-	int timeOn;
-	int timeOff;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t timeOn;
+	uint8_t timeOff;
 };
 
 struct HeadLEDs {
-	int light1;
-	int light2;
-	int light3;
-	int light4;
+	uint8_t light1;
+	uint8_t light2;
+	uint8_t light3;
+	uint8_t light4;
 };
 
 class MiP {
@@ -89,7 +88,7 @@ public:
 	
 	void disableGestureDetect(void);
 	
-	boolean isGestureDetectEnabled(void);
+	bool isGestureDetectEnabled(void);
 	
 	void enableRadarMode(void);
 	
@@ -103,13 +102,13 @@ public:
 	
 	int8_t getMiPDetected(void);
 	
-	boolean isShakeDetected(void);
+	bool isShakeDetected(void);
 
 	void setIRControlEnabled(void);
 
 	void setIRControlDisabled(void);
 	
-	boolean isIRControlEnabled(void);
+	bool isIRControlEnabled(void);
 
 	void sleep(void);
 
@@ -139,7 +138,7 @@ public:
 	
 	void setClapDetectionDisabled(void);
 
-	boolean isClapDetectionEnabled(void);
+	bool isClapDetectionEnabled(void);
 	
 	void setClapDelayTime(uint8_t delayTime);
 	
@@ -152,7 +151,7 @@ public:
 	void disableDebug();
 	
 	void simpleAck(); // Another attempt at debugging.  How about flashing the LED instead
-					  // of writing to serial?
+	// of writing to serial?
 	
 private:
 	
@@ -161,7 +160,7 @@ private:
 	HeadLEDs headLEDs;
 	
 	ChestLEDs chestLEDs;
-		
+	
 	int8_t voiceHardwareVersion;
 	
 	uint8_t hardwareVersion;
@@ -172,7 +171,7 @@ private:
 	
 	int8_t _UART_Select_S; //Variable to store UART Select pin. Default is D2
 	
-	boolean debug;
+	bool debug;
 	
 	void debugOutput(unsigned char *message);
 	
@@ -186,7 +185,13 @@ private:
 	
 	uint8_t answer[8]; //Variable to store returned data from MiP
 	
-	boolean isASCIIEncodedHex(uint8_t inValue);
+	bool isASCIIEncodedHex(uint8_t inValue);
+	
+	bool isSWVersionSet;
+	
+	bool areHeadLEDsSet;
+	
+	bool isChestLEDSet;
 	
 };
 

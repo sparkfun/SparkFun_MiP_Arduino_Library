@@ -18,7 +18,7 @@ MiP MyMiP(2);
 uint8_t localVolume = 0;
 uint8_t localVoiceVersion = 0;
 uint8_t localHWVersion = 0;
-SoftwareVersion localSWVersion = {false, 0, 0, 0, 0};
+SoftwareVersion localSWVersion = {0, 0, 0, 0};
 int soundIndex = 1;
 
 void setup() {
@@ -101,7 +101,7 @@ void testHardwareVersion() {
 
 void testSoftwareVersion() {
   localSWVersion = MyMiP.getSoftwareVersion();
-  if (!localSWVersion.isSet) {
+  if (localSWVersion.year == -1) {
     Serial.println("Failed getting SW version");
     delay(1000);
   } else {

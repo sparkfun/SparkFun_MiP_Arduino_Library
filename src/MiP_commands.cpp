@@ -17,9 +17,12 @@ MiP::MiP(int8_t UART_Select_S) {
 	voiceHardwareVersion = -1;
 	hardwareVersion = -1;
 	gameMode = INVALID;
-	softwareVersion = {false, 0x00, 0x00, 0x00, 0x00};
-	headLEDs = {-1, -1, -1, -1};
-	chestLEDs = {-1, -1, -1, -1, -1};
+	isSWVersionSet = false;
+	softwareVersion = {0x00, 0x00, 0x00, 0x00};
+	areHeadLEDsSet = false;
+	headLEDs = {0x00, 0x00, 0x00, 0x00};
+	isChestLEDSet = false;
+	chestLEDs = {0x00, 0x00, 0x00, 0x00, 0x00};
 	
 	debug = false;
 }
@@ -196,50 +199,94 @@ uint8_t MiP::getWeightStatus(void){
 
 // Doesn't work yet.
 ChestLEDs MiP::getChestLEDs(void){
-	uint8_t question[] = {GET_CHEST_LED};
-	int iteration = 0;
-	/*
-while ((MIN_VOLUME > answerVal || answerVal > MAX_VOLUME) && iteration < MAX_RETRIES) {
-	sendMessage(question, 1);
-	if (Serial.available() == 4) {
-	getMessage(answer, 2);
-	if (answer[0] == GET_CHEST_LED) {
-		answerVal = answer[1];
+	if(!isChestLEDSet){
+		uint8_t question[] = {GET_CHEST_LED};		
+		uint8_t answer[6];
+		int iteration = 0;
+		
+		while (!isChestLEDSet && iteration < MAX_RETRIES) {
+			debugOutput(iteration);
+			sendMessage(question, 1);
+			if (Serial.available() == 12) {
+				getMessage(answer, 6);
+				if (answer[0] == GET_CHEST_LED) {
+					debugOutput("Right!");
+					isChestLEDSet = true;
+					chestLEDs.red = answer[1];
+					chestLEDs.green = answer[2];
+					chestLEDs.blue = answer[3];
+					chestLEDs.timeOn = answer[4];
+					chestLEDs.timeOff = answer[5];
+				} else {
+					debugOutput(":(");
+					debugOutput(answer[0]);
+				}
+			}
+			else
+			{
+				while (Serial.available()){
+					Serial.read();
+				}
+			}
+			iteration++;
+		}
 	}
-	}
-	else
-	{
-	while (Serial.available())
-		Serial.read();
-	}
-	iteration++;
-}// One more value check in case last try produced invalid result.
-if (0 > answerVal || answerVal > 7)
-	return -1;
-*/
 	return chestLEDs;
-
 }
 
 void MiP::setChestLED(uint8_t red, uint8_t green, uint8_t blue){
 	uint8_t message[] = {SET_CHEST_LED, red, green, blue};
 
 	sendMessage(message, 4);
+	isChestLEDSet = false;
 }
 
 void MiP::flashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t timeOn, uint8_t timeOff){
 	uint8_t message[] = {FLASH_CHEST_LED, red, green, blue, timeOn, timeOff};
 	
 	sendMessage(message, 6);
+	isChestLEDSet = false;
 }
 
 void MiP::setHeadLEDs(uint8_t light1, uint8_t light2, uint8_t light3, uint8_t light4){
 	uint8_t message[] = {SET_HEAD_LEDS, light1, light2, light3, light4};
 
 	sendMessage(message, 5);
+	areHeadLEDsSet = false;
 }
 
 HeadLEDs MiP::getHeadLEDs(void){
+	if(!areHeadLEDsSet){
+		uint8_t question[] = {GET_HEAD_LEDS};		
+		uint8_t answer[5];
+		int iteration = 0;
+		
+		while (!areHeadLEDsSet && iteration < MAX_RETRIES) {
+			debugOutput(iteration);
+			sendMessage(question, 1);
+			if (Serial.available() == 10) {
+				getMessage(answer, 5);
+				if (answer[0] == GET_HEAD_LEDS) {
+					debugOutput("Right!");
+					areHeadLEDsSet = true;
+					headLEDs.light1 = answer[1];
+					headLEDs.light2 = answer[2];
+					headLEDs.light3 = answer[3];
+					headLEDs.light4 = answer[4];
+				} else {
+					debugOutput(":(");
+					debugOutput(answer[0]);
+				}
+			}
+			else
+			{
+				while (Serial.available()){
+					Serial.read();
+				}
+			}
+			iteration++;
+		}
+	}
 	return headLEDs;
 }
 
@@ -267,7 +314,7 @@ void MiP::disableGestureDetect(void){
 	sendMessage(message, 2);
 }
 
-boolean MiP::isGestureDetectEnabled(void){
+bool MiP::isGestureDetectEnabled(void){
 	return false;
 }
 
@@ -291,7 +338,7 @@ void MiP::getDetectionMode(void){
 
 }
 
-boolean MiP::isShakeDetected(void){
+bool MiP::isShakeDetected(void){
 	return false;
 }
 
@@ -307,7 +354,7 @@ void MiP::setIRControlDisabled(){
 	sendMessage(message, 2);		
 }
 
-boolean MiP::isIRControlEnabled(void){
+bool MiP::isIRControlEnabled(void){
 	int answerVal = -1;
 	uint8_t answer[2];
 	uint8_t question[] = {GET_IR_CONTROL_STATUS};
@@ -342,19 +389,19 @@ uint8_t MiP::getUserData(int8_t addr){
 }
 
 SoftwareVersion MiP::getSoftwareVersion(void){
-	if(!softwareVersion.isSet){
+	if(!isSWVersionSet){
 		uint8_t question[] = {GET_SW_VERSION};		
 		uint8_t answer[5];
 		int iteration = 0;
 		
-		while (!softwareVersion.isSet && iteration < MAX_RETRIES) {
+		while (!isSWVersionSet && iteration < MAX_RETRIES) {
 			debugOutput(iteration);
 			sendMessage(question, 1);
 			if (Serial.available() == 10) {
 				getMessage(answer, 5);
 				if (answer[0] == GET_SW_VERSION) {
 					debugOutput("Right!");
-					softwareVersion.isSet = true;
+					isSWVersionSet = true;
 					softwareVersion.year = answer[1];
 					softwareVersion.month = answer[2];
 					softwareVersion.day = answer[3];
@@ -489,7 +536,7 @@ void MiP::setClapDetectionDisabled(void){
 	sendMessage(message, 2);	
 }
 
-boolean MiP::isClapDetectionEnabled(void){
+bool MiP::isClapDetectionEnabled(void){
 	int answerVal = -1;
 	uint8_t answer[2];
 	uint8_t question[] = {GET_CLAP_DETECTION};
@@ -568,7 +615,7 @@ void MiP::sendMessage(unsigned char *message, uint8_t arrayLength){
 
 void MiP::getMessage(unsigned char *answer, int byteCount) {
 	debugOutput("start getMessage");
-	boolean validChar = true;
+	bool validChar = true;
 	uint8_t recvHigh;
 	uint8_t recvLow;
 	int i = 0;
@@ -640,7 +687,7 @@ void MiP::debugOutput(uint8_t message){
 	}
 }
 
-boolean MiP::isASCIIEncodedHex(uint8_t inValue){
+bool MiP::isASCIIEncodedHex(uint8_t inValue){
 	if((inValue & 0xF0) != 0x30 || (inValue & 0xF0) != 0x40){
 		return true;
 	}
