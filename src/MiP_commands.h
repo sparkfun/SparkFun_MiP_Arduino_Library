@@ -52,9 +52,9 @@ public:
 	
 	void driveForward(int8_t direction, int8_t speed, uint8_t time);
 	
-	void turnLeft(int8_t direction, int8_t speed, uint8_t angle);
+	void turnLeft(uint8_t angle, uint8_t speed);
 	
-	void turnRight(int8_t direction, int8_t speed, uint8_t angle);
+	void turnRight(uint8_t angle, uint8_t speed);
 
 	void driveContinuous(int8_t direction, int8_t speed);
 

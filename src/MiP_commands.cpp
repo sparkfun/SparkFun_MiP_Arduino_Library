@@ -85,50 +85,16 @@ void MiP::driveForward(int8_t direction, int8_t speed, uint8_t time){
 
 }
 
-void MiP::turnLeft(int8_t direction, int8_t angle, uint8_t speed){
-	uint8_t arrayLength = 4;
-	uint8_t message[arrayLength];
+void MiP::turnLeft(uint8_t angle, uint8_t speed){
+	uint8_t message[] = {TURN_LEFT_BY_ANGLE, angle, speed};
 
-	if(direction == 0){
-		message[0] = TURN_LEFT_BY_ANGLE;
-	}
-	else if(direction == 1){
-		message[0] = TURN_RIGHT_BY_ANGLE;
-	}
-	else{
-		message[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
-	};
-
-	if(angle >= 255)angle = 255; //cap angle at max of 255
-	message[1] = uint8_t(angle); //Angle in intervals of 5 degrees
-
-	if(speed >= 24)speed = 24; //cap speed at max of 24
-	message[2] = uint8_t(speed);
-
-	sendMessage(message, arrayLength);
+	sendMessage(message, 3);
 }
 
-void MiP::turnRight(int8_t direction, int8_t angle, uint8_t speed){
-	uint8_t arrayLength = 4;
-	uint8_t message[arrayLength];
+void MiP::turnRight(uint8_t angle, uint8_t speed){
+	uint8_t message[] = {TURN_RIGHT_BY_ANGLE, angle, speed};
 
-	if(direction == 0){
-		message[0] = TURN_LEFT_BY_ANGLE;
-	}
-	else if(direction == 1){
-		message[0] = TURN_RIGHT_BY_ANGLE;
-	}
-	else{
-		message[0] = TURN_LEFT_BY_ANGLE; //Default to Left Turn
-	};
-
-	if(angle >= 255)angle = 255; //cap angle at max of 255
-	message[1] = uint8_t(angle); //Angle in intervals of 5 degrees
-
-	if(speed >= 24)speed = 24; //cap speed at max of 24
-	message[2] = uint8_t(speed);
-
-	sendMessage(message, arrayLength);
+	sendMessage(message, 3);
 }
 
 void MiP::sleep(){
@@ -197,7 +163,6 @@ uint8_t MiP::getWeightStatus(void){
 	return -1;
 }
 
-// Doesn't work yet.
 ChestLEDs MiP::getChestLEDs(void){
 	if(!isChestLEDSet){
 		uint8_t question[] = {GET_CHEST_LED};		
