@@ -51,14 +51,14 @@ enum Parameters{
 
 enum GameMode{
 	INVALID = -1,
-	APP = 1,
-	PLAY_BACK,
-	TRACKING,
-	DANCE,
-	//DEFAULT,
-	STACK,
-	TRICKS,
-	ROAM
+	APP = 0x01,
+	PLAY_BACK = 0x02,
+	TRACKING = 0x03,
+	DANCE = 0x04,
+	DEFAULT = 0x05,
+	STACK = 0x06,
+	TRICKS = 0x07,
+	ROAM = 0x08
 };
 
 enum GetUp{
@@ -113,6 +113,7 @@ enum Commands{
 
 enum Comms{
 	MAX_RETRIES = 20,
-	BAUD_RATE = 115200
+	BAUD_RATE = 115200,
+	INIT_STRING = 0xFF
 };
 #endif /* MIP_PARAMETERS_H_ */
