@@ -3,12 +3,9 @@ Written by 2stacks
 2016
 */
 
-#include <MiP_commands.h>
-#include <MiP_Parameters.h>
-#include <MiP_sounds.h>
+#include "MiP_commands.h"
 
-
-MiP MyMiP(2,3);
+MiP MyMiP(2);
   
 void setup(){
 
@@ -20,14 +17,13 @@ void setup(){
 
 void loop() {
 
-  MyMiP.playSingleSound(BURP);
+  MyMiP.playSound(MIP_SOUND_ACTION_BURPING, 0, 0);
   delay(3000);
 
   /*
-   * MyMiP.turnAngle(Direction, Angle, Speed);
-   *  Direction 
-   *    0 = Right
-   *    1 = Left
+   * MyMiP.turnRight(Angle, Speed);
+   * or
+   * MyMiP.turnLeft(Angle, Speed);   
    *  Angle in intervals of 5 degrees (0~255)
    *    18 = 90 degrees
    *    36 = 180 degrees
@@ -38,15 +34,15 @@ void loop() {
   */
   
 
-  MyMiP.turnAngle(0, 18, 24);
-  delay(3000);
-  MyMiP.turnAngle(1, 18, 12);
-  delay(3000);
-  MyMiP.turnAngle(1, 72, 24);
-  delay(3000);
-  MyMiP.turnAngle(0, 72, 12);
-  delay(3000);
-  MyMiP.turnAngle(0, 255, 24);
+  MyMiP.turnRight(18, 24);
+  delay(2000);
+  MyMiP.turnLeft(18, 12);
+  delay(2000);
+  MyMiP.turnLeft(72, 24);
+  delay(2000);
+  MyMiP.turnRight(72, 12);
+  delay(2000);
+  MyMiP.turnRight(255, 24);
   delay(3000);
   
 }
