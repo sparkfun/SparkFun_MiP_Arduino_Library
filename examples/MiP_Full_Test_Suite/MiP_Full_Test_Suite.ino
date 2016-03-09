@@ -22,8 +22,8 @@ SoftwareVersion localSWVersion = {0, 0, 0, 0};
 int soundIndex = 1;
 
 void setup() {
-  MyMiP.init(); //Serial port is configured for 115200
-  //Serial.println("MiP init.");
+  MyMiP.init();
+  Serial.println("MiP init.");
   delay(1000); // Need a delay to let the buffer clear
 
   //MyMiP.enableDebug();

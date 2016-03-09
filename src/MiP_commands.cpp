@@ -13,10 +13,13 @@ MiP::MiP(int8_t UART_Select_S) {
 	pinMode(_UART_Select_S, OUTPUT);
 	pinMode(13, OUTPUT);
 	
-	volume = -1;
+	isVolumeSet = false;
+	volume = 0;
+	claps = 0;
 	voiceHardwareVersion = -1;
 	hardwareVersion = -1;
-	gameMode = INVALID;
+	isGameModeSet = false;
+	gameMode = UNKNOWN;
 	isSWVersionSet = false;
 	softwareVersion = {0x00, 0x00, 0x00, 0x00};
 	areHeadLEDsSet = false;
@@ -32,7 +35,7 @@ MiP::~MiP() {
 
 void MiP::init(void){
 	Serial.begin(BAUD_RATE);
-	uint8_t initString[] = {0xFF};
+	uint8_t initString[] = {INIT_STRING};
 	sendMessage(initString, 1);
 	setVolume(0);
 	while (Serial.available()){
@@ -52,37 +55,28 @@ void MiP::setPosition(Position pose){
 	sendMessage(message, 2);
 }
 
-void MiP::driveForward(int16_t distance, int16_t angle){
-	uint8_t arrayLength = 7;
-	uint8_t message[arrayLength];
-	message[0] = DRIVE_DISTANCE; //Drive Distance Command
+void MiP::driveForward(uint16_t distance, uint8_t rotation, int16_t angle){
+	uint8_t message[] = {DRIVE_FWD_WITH_DISTANCE, FWD, rotation, angle};
 
-	if(distance >=0){
-		message[1] = 0x00; // Forward
-	}
-	else{
-		message[1] = 0x01; // Reverse
-	};
-	message[2] = uint8_t(distance);
-
-	if(angle >=0){
-		message[3] = 0x01; // Clockwise
-	}
-	else{
-		message[3] = 0x00; // Counter Clockwise
-	};
-
-	angle = angle & 0x7fff; //remove direction from angle
-	if(angle >= 360)angle = 360; //cap rotation at 360 deg
-
-	message[4] = uint8_t(angle >> 8);
-	message[5] = uint8_t(angle);
-
-	sendMessage(message, arrayLength);
+	sendMessage(message, 4);
 }
 
-void MiP::driveForward(int8_t direction, int8_t speed, uint8_t time){
+void MiP::driveBackward(uint16_t distance, uint8_t rotation, int16_t angle){
+	uint8_t message[] = {DRIVE_BWD_WITH_DISTANCE, BWD, rotation, angle};
 
+	sendMessage(message, 4);
+}
+
+void MiP::driveForward(uint8_t speed, uint8_t time){
+	uint8_t message[] = {DRIVE_FWD_WITH_TIME, speed, time};
+	
+	sendMessage(message, 3);
+}
+
+void MiP::driveBackward(uint8_t speed, uint8_t time){
+	uint8_t message[] = {DRIVE_BWD_WITH_TIME, speed, time};
+	
+	sendMessage(message, 3);
 }
 
 void MiP::turnLeft(uint8_t angle, uint8_t speed){
@@ -104,7 +98,9 @@ void MiP::sleep(){
 }
 
 void MiP::driveContinuous(int8_t direction, int8_t speed){
-
+	//uint8_t message[] = {DRIVE_CONTINUOUS};
+	
+	//sendMessage(message, 1);
 }
 
 void MiP::stop(void){
@@ -117,30 +113,40 @@ void MiP::setGameMode(GameMode mode){
 	uint8_t message[] = {SET_GAME_MODE, (uint8_t)mode};
 
 	sendMessage(message, 2);
+	isGameModeSet = false;
 }
 
 GameMode MiP::getGameMode(void){
-	if(gameMode == INVALID){
+	if(!isGameModeSet){
 		uint8_t question[] = {GET_GAME_MODE};		
 		uint8_t answer[2];
 		int iteration = 0;
 
-		while ((gameMode == INVALID) && iteration < MAX_RETRIES) {
+		while (iteration < MAX_RETRIES) {
 			sendMessage(question, 1);
 			if (Serial.available() == 4) {
 				getMessage(answer, 2);
 				if (answer[0] == GET_GAME_MODE) {
+					isGameModeSet = true;
 					gameMode = (GameMode)answer[1];
 				}
 			}
 			else
 			{
-				while (Serial.available())
-				Serial.read();
+				while (Serial.available()){
+					Serial.read();
+				}
+				
 			}
 			iteration++;
 		}
-	}	
+	}
+	// One more value check in case last try produced invalid result.
+	if (APP >= gameMode || gameMode >= ROAM){
+		isGameModeSet = false;
+		gameMode = UNKNOWN;
+	}
+	
 	return gameMode;
 }
 
@@ -150,9 +156,7 @@ void MiP::getStatus(void){
 
 void MiP::stand(GetUp state){
 	uint8_t arrayLength = 2;
-	uint8_t message[arrayLength];
-	message[0] = GET_UP;
-	message[1] = state;
+	uint8_t message[] = {GET_UP, state};
 
 	sendMessage(message, arrayLength);
 }
@@ -456,10 +460,11 @@ void MiP::setVolume(uint8_t newVolume){
 	uint8_t message[] = {SET_VOLUME, newVolume};
 
 	sendMessage(message, 2);
+	isVolumeSet = false;
 }
 
-int8_t MiP::getVolume(){
-	if(volume == -1){
+uint8_t MiP::getVolume(){
+	if(!isVolumeSet){
 		uint8_t answer[2];
 		uint8_t question[] = {GET_VOLUME};
 		int iteration = 0;
@@ -469,6 +474,7 @@ int8_t MiP::getVolume(){
 			if (Serial.available() == 4) {
 				getMessage(answer, 2);
 				if (answer[0] == GET_VOLUME) {
+					isVolumeSet = true;
 					volume = answer[1];
 				}
 			}
@@ -483,7 +489,7 @@ int8_t MiP::getVolume(){
 	}
 	// One more value check in case last try produced invalid result.
 	if (0 > volume || volume > 7){
-		volume = -1;
+		isVolumeSet = false;
 	}
 
 	return volume;
@@ -535,11 +541,30 @@ bool MiP::isClapDetectionEnabled(void){
 	}
 }
 
-int8_t MiP::getClapsDetected(){
-	uint8_t message[] = {GET_CLAP_DETECTED};
-	
-	sendMessage(message, 1);
-	// Not finished.
+uint8_t MiP::getClapsDetected(){
+	uint8_t answer[2];
+	uint8_t question[] = {GET_CLAPS_DETECTED};
+	int iteration = 0;
+	while (iteration < MAX_RETRIES) {
+		debugOutput(iteration);
+		sendMessage(question, 1);
+		if (Serial.available() == 4) {
+			getMessage(answer, 2);
+			if (answer[0] == GET_CLAPS_DETECTED) {
+				claps = answer[1];
+			}
+		}
+		else
+		{
+			while (Serial.available()){
+				Serial.read();
+			}
+		}
+		iteration++;
+	}
+
+
+	return claps;
 }
 
 void MiP::disconnectApp(){

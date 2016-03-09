@@ -48,9 +48,13 @@ public:
 	
 	void setPosition(Position pose);
 	
-	void driveForward(int16_t distance, int16_t angle);
+	void driveForward(uint16_t distance, uint8_t rotation, int16_t angle);
 	
-	void driveForward(int8_t direction, int8_t speed, uint8_t time);
+	void driveBackward(uint16_t distance, uint8_t rotation, int16_t angle);
+	
+	void driveForward(uint8_t speed, uint8_t time);
+	
+	void driveBackward(uint8_t speed, uint8_t time);
 	
 	void turnLeft(uint8_t angle, uint8_t speed);
 	
@@ -128,7 +132,7 @@ public:
 
 	void setVolume(uint8_t volume);
 	
-	int8_t getVolume(void);
+	uint8_t getVolume(void);
 
 	void sendIRDongleCode(int8_t input);
 	
@@ -144,7 +148,7 @@ public:
 	
 	uint8_t getClapDelayTime();
 	
-	int8_t getClapsDetected();
+	uint8_t getClapsDetected();
 	
 	void enableDebug();
 	
@@ -165,7 +169,13 @@ private:
 	
 	uint8_t hardwareVersion;
 
-	int8_t volume;
+	bool isVolumeSet;
+	
+	uint8_t volume;
+	
+	uint8_t claps;
+	
+	bool isGameModeSet;
 	
 	GameMode gameMode;
 	
